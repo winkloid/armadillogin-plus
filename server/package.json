@@ -4,13 +4,18 @@
   "description": "Server that allows the registration of a WebAuthn credential and the authentication using a previously registered WebAuthn credential. Also, users will be able to login on another device using an Mobile-to-Web authentication mechanism (showing an QR code on one device, scan it with another one and login on the other device to create a authenticated session on the first device). Maybe there will also be an eID feature later that will allow users to also login via an eID service to create an credential.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app.js"
   },
   "author": "Oliver Winkler",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "mongoose": "^7.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
   }
 }
