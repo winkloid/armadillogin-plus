@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require("express");
+const loginSession = require("express-session");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const webauthn = require("./routes/webauthn.routes");
@@ -18,6 +19,17 @@ app.use(cors());
 app.use(express.json());
 //handle application/x-www-form-urlencoded
 app.use(express.urlencoded({extended:true}));
+
+app.use(loginSession({
+    name: "armadillogin_login",
+    secret: process.env.SESSION_SECRET_LOGINSESSION,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: process.env.ISPRODUCTION === "yes", // describes whether cookies are only sent via https or not, Only works if https is used
+        maxAge: 1440000  // 1 day
+    },
+}));
 
 app.use("/api/webauthn", webauthn);
 
