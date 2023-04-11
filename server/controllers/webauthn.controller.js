@@ -1,37 +1,31 @@
-const MongoWatchTest = require("../models/mongowatchtest.model");
+const UserModel = require("../models/user.model");
 
-const testMongoWatch = async (req, res) => {
-    console.log("Aufgerufen.")
-
-    const watchPipeline = [
-        {
-            $match: {
-                $or: [
-                    {"fullDocument.sessionId": 123456789, "updateDescription.updatedFields.userName": "active"},
-                    {"fullDocument.sessionId": 123456789, "operationType": "insert"}
-                ]
-            }
+const isUserInDatabase = (req, res) => {
+    UserModel.exists({
+        userName: req.body.userName
+    }).then((databaseResponse) => {
+        if(databaseResponse) {
+            return res.status(200).send("User exists.");
+        } else {
+            return res.status(404).send("User does not exist.");
         }
-    ]
-    MongoWatchTest.watch(watchPipeline, { fullDocument: 'updateLookup' }).once("change", change => {
-        console.log(JSON.stringify(change));
-        return res.status(200).send(change);
+    }).catch((error) => {
+        return res.status(500).send("Server error:\n" + error);
     });
 }
 
-const writeMongoData = async (req, res) => {
-    let newMongoData = new MongoWatchTest({
-        sessionId: req.body.sessionId,
+// only for debugging
+const writeUserToDb = (req, res) => {
+    const newUser = new UserModel({
         userName: req.body.userName,
+    }).save().then((databaseResponse) => {
+        return res.status(200).send("User saved.\n" + databaseResponse);
+    }).catch((error) => {
+        return res.status(500).send("Server error:\n" + error);
     });
-    newMongoData.save()
-        .then(res.status(201).send("Funktionierte."))
-        .catch(error => {
-            return res.status(201).send("Person was created.");
-        });
-}
+} 
 
 module.exports = {
-    testMongoWatch,
-    writeMongoData
+    isUserInDatabase,
+    writeUserToDb
 }
