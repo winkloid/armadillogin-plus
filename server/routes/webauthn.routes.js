@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const {
-    isUserInDatabase,
-    writeUserToDb
+    writeUserToDb, registrationOptions
 } = require("../controllers/webauthn.controller");
 
-router.get("/userExists", isUserInDatabase);
+router.post("/registrationOptions", registrationOptions);
 
 // only for debugging
 router.post("/writeUser", writeUserToDb);
