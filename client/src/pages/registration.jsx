@@ -7,7 +7,6 @@ import terminal from "virtual:terminal";
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
 
-
 export default function Registration() {
     const [userName, setUserName] = useState("");
     const [registrationBegin, setRegistrationBegin] = useState(true);
@@ -28,11 +27,19 @@ export default function Registration() {
         }).catch((error) => {
             return error.response;
         });
-        terminal.log(optionsResponse);
         if (optionsResponse.status === 200) {
-            setRegistrationOptions(optionsResponse.body);
+            terminal.log(optionsResponse.data);
+            setRegistrationOptions(optionsResponse.data);
             setFetchingRegistrationOptions(false);
             setFetchingRegistrationOptionsSuccess(true);
+
+            let attResp;
+            try {
+                // Pass the options to the authenticator and wait for a response
+                attResp = await startRegistration(optionsResponse.data);
+            } catch (error) {
+                throw error;
+            }
         } else {
             setFetchingRegistrationOptions(false);
             setFetchingRegistrationOptionsSuccess(false);
