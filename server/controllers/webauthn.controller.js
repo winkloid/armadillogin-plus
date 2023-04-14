@@ -15,6 +15,7 @@ const maxRetriesOnError = 10;
 
 // PUBLIC
 const registrationOptions = async (req, res) => {
+    console.log("Aufgerufen. User: " + req.body.userName);
     if(!req.body.userName) {
         return res.status(400).send("Error: no username provided");
     }

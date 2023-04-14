@@ -8,6 +8,10 @@ const webauthn = require("./routes/webauthn.routes");
 
 const app = express();
 const port = 5000;
+var corsOptions = {
+    credentials: true,
+    origin: 'http://localhost:5173'
+}
 
 mongoose.connect("mongodb://127.0.0.1:27017/armadillogin_plus?replicaSet=rs0", {useNewUrlParser:true,useUnifiedTopology:true,directConnection: true})
     .then((connectionResult) => {
@@ -17,7 +21,7 @@ mongoose.connect("mongodb://127.0.0.1:27017/armadillogin_plus?replicaSet=rs0", {
         console.log(error);
 });
 
-app.use(cors());
+app.use(cors(corsOptions));
 // handle application/json
 app.use(express.json());
 //handle application/x-www-form-urlencoded
