@@ -8,7 +8,7 @@ const webauthn = require("./routes/webauthn.routes");
 
 const app = express();
 const port = 5000;
-var corsOptions = {
+let corsOptions = {
     credentials: true,
     origin: 'http://localhost:5173'
 }

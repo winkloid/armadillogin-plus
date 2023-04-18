@@ -3,46 +3,69 @@ import {browserSupportsWebAuthn, startRegistration} from "@simplewebauthn/browse
 import axios from "axios";
 
 import terminal from "virtual:terminal";
+import ErrorComponent from "../components/ErrorComponent.jsx";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
+// Never return error on http response with statuscode !== 200
+axios.defaults.validateStatus = function () {
+    return true;
+};
 
 export default function Registration() {
     const [userName, setUserName] = useState("");
     const [registrationBegin, setRegistrationBegin] = useState(true);
     const [fetchingRegistrationOptions, setFetchingRegistrationOptions] = useState(false);
     const [fetchingRegistrationOptionsSuccess, setFetchingRegistrationOptionsSuccess] = useState(false);
+    const [currentError, setCurrentError] = useState("");
     const [registrationOptions, setRegistrationOptions] = useState({});
 
     const getRegistrationOptions = async () => {
         terminal.log(userName);
         setFetchingRegistrationOptions(true);
 
-        let optionsResponse = await axios({
-            method: 'post',
-            url: 'http://localhost:5000/api/webauthn/registrationOptions',
-            data: {"userName": userName}
-        }).then((response) => {
-            return response;
-        }).catch((error) => {
-            return error.response;
-        });
-        if (optionsResponse.status === 200) {
-            terminal.log(optionsResponse.data);
-            setRegistrationOptions(optionsResponse.data);
-            setFetchingRegistrationOptions(false);
-            setFetchingRegistrationOptionsSuccess(true);
+        try {
+            let optionsResponse = await axios({
+                method: 'post',
+                url: 'http://localhost:5000/api/webauthn/registrationOptions',
+                data: {"userName": userName}
+            }).then((response) => {
+                return response;
+            });
+            if (optionsResponse.status === 200) {
+                terminal.log(optionsResponse.data);
+                setRegistrationOptions(optionsResponse.data);
+                setFetchingRegistrationOptions(false);
+                setFetchingRegistrationOptionsSuccess(true);
 
-            let attResp;
-            try {
-                // Pass the options to the authenticator and wait for a response
-                attResp = await startRegistration(optionsResponse.data);
-            } catch (error) {
-                throw error;
+                // request response from the WebAuthn authenticator for registration
+                // the Authenticator will now create a key pair consisting of public and private key
+                // the Authenticator's response will include the public key of this key pair and a signature of the challenge that was included in the registrationOptions-JSON
+                let registrationResponse;
+                try {
+                    // Pass the options to the authenticator and wait for a response
+                    registrationResponse = await startRegistration(optionsResponse.data);
+                } catch (startRegistrationError) {
+                    setFetchingRegistrationOptionsSuccess(false)
+                    if (startRegistrationError.name === "InvalidStateError") {
+                        setCurrentError("Fehler: Der Authenticator scheint bereits mit dem angegebenen Benutzer verknüpft zu sein.");
+                    } else {
+                        setCurrentError("Ein unerwarteter Fehler ist beim Start der Registrierung aufgetreten: " + startRegistrationError);
+                    }
+                }
+            } else {
+                setFetchingRegistrationOptions(false);
+                setFetchingRegistrationOptionsSuccess(false);
+                setCurrentError("Fehler: " + optionsResponse.data);
             }
-        } else {
+        } catch (error) {
             setFetchingRegistrationOptions(false);
             setFetchingRegistrationOptionsSuccess(false);
+            if(axios.isAxiosError(error)) {
+                setCurrentError("Fehler bei der Verbindung mit dem Backend. Bitte prüfen Sie Ihre Internetverbindung.");
+            } else {
+                setCurrentError("Ein unerwarteter Fehler ist aufgetreten: " + error);
+            }
         }
     }
 
@@ -78,6 +101,7 @@ export default function Registration() {
                     </button>
                     )}
                 </form>
+                {!fetchingRegistrationOptionsSuccess && <ErrorComponent errorMessage={currentError}/>}
             </>
         )
     }

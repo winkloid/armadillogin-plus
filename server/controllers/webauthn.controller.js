@@ -15,9 +15,8 @@ const maxRetriesOnError = 10;
 
 // PUBLIC
 const registrationOptions = async (req, res) => {
-    console.log("Aufgerufen. User: " + req.body.userName);
     if(!req.body.userName) {
-        return res.status(400).send("Error: no username provided");
+        return res.status(400).send("Kein Benutzername angegeben. Bitte geben Sie einen Benutzernamen an.");
     }
     const existsUser = await UserModel.exists({
         userName: req.body.userName
@@ -29,7 +28,7 @@ const registrationOptions = async (req, res) => {
 
     if(existsUser.success) {
         if(existsUser.content) {
-            return res.status(400).send("User already exists and cannot be registered again. Please choose another username.");
+            return res.status(400).send("Der Benutzername existiert bereits und kann nicht erneut vergeben werden. Bitte wählen Sie einen anderen Benutzernamen.");
         } else {
             // if the user does not exist yet, we can create a new one
             let newlyCreatedUser = await createNewUser(req.body.userName);
