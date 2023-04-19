@@ -45,6 +45,7 @@ export default function Registration() {
                 try {
                     // Pass the options to the authenticator and wait for a response
                     registrationResponse = await startRegistration(optionsResponse.data);
+                    terminal.log("RegistrationResponse: \n\n" + registrationResponse.rawId);
                 } catch (startRegistrationError) {
                     setFetchingRegistrationOptionsSuccess(false)
                     if (startRegistrationError.name === "InvalidStateError") {

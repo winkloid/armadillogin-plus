@@ -63,6 +63,7 @@ const registrationOptions = async (req, res) => {
             }
 
             req.session.userName = req.body.userName;
+            req.session.userId = newlyCreatedUser.content._id;
 
             const options = generateRegistrationOptions({
                 rpName: rpName,
@@ -77,6 +78,77 @@ const registrationOptions = async (req, res) => {
         }
     } else {
         return res.status(500).send("Internal Server Error: \n\n" + isUserRegistered.content);
+    }
+}
+
+const completeRegistration =  async (req, res) => {
+    if (!req.body) {
+        return res.status(400).send("Fehlerhafte Anfrage: Es wurde eine leere Registration-Response übermittelt.");
+    }
+    const currentChallenge = req.session.currentChallenge;
+
+    let registrationVerification;
+    try {
+        registrationVerification = await verifyRegistrationResponse({
+            response: req.body,
+            expectedChallenge: currentChallenge,
+            expectedOrigin: origin,
+            expectedRPID: rpId
+        });
+    } catch (verificationError) {
+        console.log(verificationError);
+        return res.status(400).send("Fehler beim Verifizieren der Registration-Response: \n" + verificationError.message);
+    }
+
+    const registrationVerified = registrationVerification.verified;
+    const registrationInformation = registrationVerification.registrationInfo;
+
+    if(registrationVerified && registrationInformation) {
+        const credentialPublicKey = registrationInformation.credentialPublicKey;
+        const credentialId = registrationInformation.credentialID;
+        const counter = registrationInformation.counter;
+
+        // set corresponding user as registered
+        const setUserRegistered = await UserModel.updateOne({
+            _id: req.session.userId,
+            isRegistered: false
+        }, {$set: {
+            userName: req.session.userName,
+            isRegistered: true
+        }}).exec().then((databaseResponse) => {
+            return {success: 1, content: databaseResponse};
+        }).catch((error) => {
+            return {success: 0, content: error};
+        });
+
+        if(!setUserRegistered.success) {
+            return res.status(500).send("Fehler bei der Kommunikation mit der Datenbank beim Abschluss der Nutzerregistrierung.");
+        } else {
+            if(setUserRegistered.matchedCount === 0) {
+                return res.status(401).send("Ein Nutzer mit dem angegebenen Benutzernamen existiert entweder nicht oder hat die Registrierung bereits abgeschlossen. Wenn Sie Ihrem Konto einen weiteren Passkey hinzufügen möchten, können Sie dies nach einem Login in Ihrem persönlichen Bereich tun.");
+            } else {
+                try {
+                    // Add authenticator to database if the specified user is not already registered
+                    const newWebAuthnAuthenticator = await WebAuthnAuthenticatorModel.create({
+                        userReference: req.session.userId,
+                        credentialId: credentialId,
+                        credentialPublicKey: credentialPublicKey,
+                        counter: counter,
+                        transports: req.body.response.transports
+                    });
+                    await UserModel.updateOne({
+                        _id: req.session.userId
+                    }, {
+                        $push: {
+                            authenticators: newWebAuthnAuthenticator
+                        }
+                    });
+                    return res.status(201).send("Der Benutzer" + req.session.userName + " wurde registriert.");
+                } catch(error) {
+                    return res.status(500).send("Interner Server Fehler beim Hinzufügen des Authenticators zur Datenbank.");
+                }
+            }
+        }
     }
 }
 
@@ -104,5 +176,6 @@ const writeUserToDb = (req, res) => {
 
 module.exports = {
     registrationOptions,
+    completeRegistration,
     writeUserToDb
 }

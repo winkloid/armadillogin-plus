@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const WebAuthnAuthenticatorSchema = new Schema({
     userReference: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: "UserModel"
     },
     credentialId: {type: Buffer},
