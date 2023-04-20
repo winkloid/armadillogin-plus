@@ -210,7 +210,7 @@ const authenticationOptions = async (req, res) => {
     const authenticationOptions = generateAuthenticationOptions({
         allowCredentials: userAuthenticators.map((userAuthenticator) => ({
             // reconvert the credentialId of the authenticator which is stored as Buffer in the DB back to UInt8Array
-            id: new Uint8Array(userAuthenticator.credentialId.buffer),
+            id: Uint8Array.from(userAuthenticator.credentialId),
             type: "public-key",
             transports: userAuthenticator.transports,
         })),

@@ -9,7 +9,7 @@ router.post("/registrationOptions", registrationOptions);
 router.post("/completeRegistration", completeRegistration);
 
 // WebAuthn Authentication
-router.get("/authenticationOptions", authenticationOptions);
+router.post("/authenticationOptions", authenticationOptions);
 
 
 module.exports = router;

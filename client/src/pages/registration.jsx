@@ -9,14 +9,14 @@ import RegistrationCompletion from "../components/RegistrationCompletion.jsx";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
-// Never return error on http response with statuscode !== 200
+// Never return error on http response with status code !== 200
 axios.defaults.validateStatus = function () {
     return true;
 };
 
 export default function Registration() {
     const [userName, setUserName] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [fetchingRegistrationOptionsSuccess, setFetchingRegistrationOptionsSuccess] = useState(false);
     const [completeRegistrationSuccess, setCompleteRegistrationSuccess] = useState(false);
     const [errorState, setErrorState] = useState(ErrorState.success);
@@ -24,7 +24,7 @@ export default function Registration() {
     const [registrationOptions, setRegistrationOptions] = useState({});
 
     const getRegistrationOptions = async () => {
-        setLoading(true);
+        setIsLoading(true);
         try {
             let optionsResponse = await axios({
                 method: 'post',
@@ -39,22 +39,20 @@ export default function Registration() {
                 setRegistrationOptions(optionsResponse.data);
                 setFetchingRegistrationOptionsSuccess(true);
                 setErrorState(ErrorState.success);
-                setLoading(false);
+                setIsLoading(false);
             } else {
                 setCurrentError("Fehler: " + optionsResponse.data);
                 setErrorState(ErrorState.registrationOptionsError);
-                setFetchingRegistrationOptionsSuccess(false);
-                setLoading(false);
+                setIsLoading(false);
             }
         } catch (error) {
-            setFetchingRegistrationOptionsSuccess(false);
             if(axios.isAxiosError(error)) {
                 setCurrentError("Fehler bei der Verbindung mit dem Backend. Bitte prüfen Sie Ihre Internetverbindung.");
             } else {
                 setCurrentError("Ein unerwarteter Fehler ist aufgetreten: " + error);
             }
             setErrorState(ErrorState.connectionError);
-            setLoading(false);
+            setIsLoading(false);
         }
     }
 
@@ -73,13 +71,13 @@ export default function Registration() {
                         <input value={userName}
                                onChange={(userNameChangeEvent) => setUserName(userNameChangeEvent.target.value)}
                                type={"text"}
-                               disabled={loading}
+                               disabled={isLoading}
                                className={"form-control"} placeholder={"Benutzername"}
                                aria-label={"Benutzername"} aria-describedby={"userName-addon"}/>
                     </div>
 
                     {/* Show the button as disabled and with a loading animation only if data are currently fetched from the backend */}
-                    {!loading ? (
+                    {!isLoading ? (
                     <button onClick={getRegistrationOptions} type={"button"} disabled={!browserSupportsWebAuthn()} className={"btn btn-primary mb-3"}>
                         Bestätigen
                     </button>
