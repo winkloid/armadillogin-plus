@@ -10,12 +10,12 @@ const app = express();
 const port = 5000;
 let corsOptions = {
     credentials: true,
-    origin: 'http://localhost:5173'
+    origin: 'http://' + process.env.rpId + ":" + process.env.clientPort
 }
 
-mongoose.connect("mongodb://127.0.0.1:27017/armadillogin_plus?replicaSet=rs0", {useNewUrlParser:true,useUnifiedTopology:true,directConnection: true})
+mongoose.connect(process.env.MONGODB_BASE_STRING, {useNewUrlParser:true,useUnifiedTopology:true,directConnection: true})
     .then((connectionResult) => {
-        console.log("MongoDB connected ... here:" + "mongodb://127.0.0.1:27017/armadillogin_plus?replicaSet=rs0");
+        console.log("MongoDB connected ... here:" + process.env.MONGODB_BASE_STRING);
     })
     .catch(error => {
         console.log(error);
@@ -39,7 +39,7 @@ app.use(session({
         httpOnly: true,
     },
     store: MongoStore.create({
-        mongoUrl: "mongodb://127.0.0.1:27017/armadillogin_plus?replicaSet=rs0",
+        mongoUrl: process.env.MONGODB_BASE_STRING,
         mongoOptions: {useNewUrlParser:true,useUnifiedTopology:true,directConnection: true},
         ttl: 60 * 60, // 1 hour
         collectionName: "loginSessions",

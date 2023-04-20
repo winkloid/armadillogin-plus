@@ -53,6 +53,22 @@ export default function Registration() {
                     } else {
                         setCurrentError("Ein unerwarteter Fehler ist beim Start der Registrierung aufgetreten: " + startRegistrationError);
                     }
+                    return;
+                }
+
+                let completeRegistrationResponse = await axios({
+                    method: 'post',
+                    url: 'http://localhost:5000/api/webauthn/completeRegistration',
+                    data: registrationResponse
+                }).then((response) => {
+                    return response;
+                });
+
+                if(completeRegistrationResponse.status !== 201) {
+                    setFetchingRegistrationOptionsSuccess(false);
+                    setCurrentError(completeRegistrationResponse.data);
+                } else {
+                    setFetchingRegistrationOptionsSuccess(true);
                 }
             } else {
                 setFetchingRegistrationOptions(false);

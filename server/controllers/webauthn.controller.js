@@ -3,8 +3,8 @@ const UserModel = require("../models/user.model");
 // constant values needed for WebAuthn implementation itself
 const WebAuthnAuthenticatorModel = require("../models/webauthn_authenticator.model");
 const rpName = "ArmadilLogin PLUS";
-const rpId = "localhost"; // domain name
-const origin = "http://" + rpId;
+const rpId = process.env.rpId; // domain name
+const origin = "http://" + rpId + ":" + process.env.clientPort;
 const {
     generateRegistrationOptions,
     verifyRegistrationResponse,
@@ -71,7 +71,10 @@ const registrationOptions = async (req, res) => {
                 userID: newlyCreatedUser.content._id,
                 userName: req.body.userName,
                 attestationType: "none",
-                excludeCredentials: []
+                excludeCredentials: [],
+                authenticatorSelection: {
+                    userVerification: "discouraged"
+                }
             });
             req.session.currentChallenge = options.challenge;
             return res.status(200).send(options);
@@ -93,7 +96,8 @@ const completeRegistration =  async (req, res) => {
             response: req.body,
             expectedChallenge: currentChallenge,
             expectedOrigin: origin,
-            expectedRPID: rpId
+            expectedRPID: rpId,
+            requireUserVerification: false
         });
     } catch (verificationError) {
         console.log(verificationError);
@@ -113,7 +117,6 @@ const completeRegistration =  async (req, res) => {
             _id: req.session.userId,
             isRegistered: false
         }, {$set: {
-            userName: req.session.userName,
             isRegistered: true
         }}).exec().then((databaseResponse) => {
             return {success: 1, content: databaseResponse};
@@ -124,32 +127,25 @@ const completeRegistration =  async (req, res) => {
         if(!setUserRegistered.success) {
             return res.status(500).send("Fehler bei der Kommunikation mit der Datenbank beim Abschluss der Nutzerregistrierung.");
         } else {
-            if(setUserRegistered.matchedCount === 0) {
-                return res.status(401).send("Ein Nutzer mit dem angegebenen Benutzernamen existiert entweder nicht oder hat die Registrierung bereits abgeschlossen. Wenn Sie Ihrem Konto einen weiteren Passkey hinzufügen möchten, können Sie dies nach einem Login in Ihrem persönlichen Bereich tun.");
+            if(setUserRegistered.content.matchedCount === 0) {
+                return res.status(403).send("Ein Nutzer mit dem angegebenen Benutzernamen existiert entweder nicht oder hat die Registrierung bereits abgeschlossen. Wenn Sie Ihrem Konto einen weiteren Authenticator hinzufügen möchten, können Sie dies nach einem Login in Ihrem persönlichen Bereich tun.");
             } else {
                 try {
                     // Add authenticator to database if the specified user is not already registered
                     const newWebAuthnAuthenticator = await WebAuthnAuthenticatorModel.create({
                         userReference: req.session.userId,
-                        credentialId: credentialId,
-                        credentialPublicKey: credentialPublicKey,
+                        credentialId: Buffer.from(credentialId),
+                        credentialPublicKey: Buffer.from(credentialPublicKey),
                         counter: counter,
                         transports: req.body.response.transports
                     });
-                    await UserModel.updateOne({
-                        _id: req.session.userId
-                    }, {
-                        $push: {
-                            authenticators: newWebAuthnAuthenticator
-                        }
-                    });
-                    return res.status(201).send("Der Benutzer" + req.session.userName + " wurde registriert.");
+                    return res.status(201).send("Der Benutzer" + req.session.userName + " wurde registriert. \n" + registrationVerified);
                 } catch(error) {
-                    return res.status(500).send("Interner Server Fehler beim Hinzufügen des Authenticators zur Datenbank.");
+                    return res.status(500).send("Interner Server Fehler beim Hinzufügen des Authenticators zur Datenbank." + error);
                 }
             }
         }
-    }
+    } else return res.status(400).send("Fehler beim Auslesen der Informationen aus der Registration-Response des Authenticators.");
 }
 
 // PRIVATE

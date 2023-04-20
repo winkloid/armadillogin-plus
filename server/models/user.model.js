@@ -7,7 +7,6 @@ const UserSchema = new Schema({
     _id: {type: String, default: function generateUUID() { return uuidv4(); }},
     userName: {type: String, required: true, unique: true},
     isRegistered: {type: Boolean, default: false, required:true},
-    authenticators: [{type: Buffer}]
 });
 
 module.exports = mongoose.model("UserModel", UserSchema, "users");
