@@ -4,6 +4,8 @@ import axios from "axios";
 
 import terminal from "virtual:terminal";
 import ErrorComponent from "../components/ErrorComponent.jsx";
+import {ErrorState} from "../types/errorState.js";
+import RegistrationCompletion from "../components/RegistrationCompletion.jsx";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -14,16 +16,15 @@ axios.defaults.validateStatus = function () {
 
 export default function Registration() {
     const [userName, setUserName] = useState("");
-    const [registrationBegin, setRegistrationBegin] = useState(true);
-    const [fetchingRegistrationOptions, setFetchingRegistrationOptions] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [fetchingRegistrationOptionsSuccess, setFetchingRegistrationOptionsSuccess] = useState(false);
+    const [completeRegistrationSuccess, setCompleteRegistrationSuccess] = useState(false);
+    const [errorState, setErrorState] = useState(ErrorState.success);
     const [currentError, setCurrentError] = useState("");
     const [registrationOptions, setRegistrationOptions] = useState({});
 
     const getRegistrationOptions = async () => {
-        terminal.log(userName);
-        setFetchingRegistrationOptions(true);
-
+        setLoading(true);
         try {
             let optionsResponse = await axios({
                 method: 'post',
@@ -32,61 +33,32 @@ export default function Registration() {
             }).then((response) => {
                 return response;
             });
+
             if (optionsResponse.status === 200) {
-                terminal.log(optionsResponse.data);
+                // Debug: terminal.log(optionsResponse.data);
                 setRegistrationOptions(optionsResponse.data);
-                setFetchingRegistrationOptions(false);
                 setFetchingRegistrationOptionsSuccess(true);
-
-                // request response from the WebAuthn authenticator for registration
-                // the Authenticator will now create a key pair consisting of public and private key
-                // the Authenticator's response will include the public key of this key pair and a signature of the challenge that was included in the registrationOptions-JSON
-                let registrationResponse;
-                try {
-                    // Pass the options to the authenticator and wait for a response
-                    registrationResponse = await startRegistration(optionsResponse.data);
-                    terminal.log("RegistrationResponse: \n\n" + registrationResponse.rawId);
-                } catch (startRegistrationError) {
-                    setFetchingRegistrationOptionsSuccess(false)
-                    if (startRegistrationError.name === "InvalidStateError") {
-                        setCurrentError("Fehler: Der Authenticator scheint bereits mit dem angegebenen Benutzer verknüpft zu sein.");
-                    } else {
-                        setCurrentError("Ein unerwarteter Fehler ist beim Start der Registrierung aufgetreten: " + startRegistrationError);
-                    }
-                    return;
-                }
-
-                let completeRegistrationResponse = await axios({
-                    method: 'post',
-                    url: 'http://localhost:5000/api/webauthn/completeRegistration',
-                    data: registrationResponse
-                }).then((response) => {
-                    return response;
-                });
-
-                if(completeRegistrationResponse.status !== 201) {
-                    setFetchingRegistrationOptionsSuccess(false);
-                    setCurrentError(completeRegistrationResponse.data);
-                } else {
-                    setFetchingRegistrationOptionsSuccess(true);
-                }
+                setErrorState(ErrorState.success);
+                setLoading(false);
             } else {
-                setFetchingRegistrationOptions(false);
-                setFetchingRegistrationOptionsSuccess(false);
                 setCurrentError("Fehler: " + optionsResponse.data);
+                setErrorState(ErrorState.registrationOptionsError);
+                setFetchingRegistrationOptionsSuccess(false);
+                setLoading(false);
             }
         } catch (error) {
-            setFetchingRegistrationOptions(false);
             setFetchingRegistrationOptionsSuccess(false);
             if(axios.isAxiosError(error)) {
                 setCurrentError("Fehler bei der Verbindung mit dem Backend. Bitte prüfen Sie Ihre Internetverbindung.");
             } else {
                 setCurrentError("Ein unerwarteter Fehler ist aufgetreten: " + error);
             }
+            setErrorState(ErrorState.connectionError);
+            setLoading(false);
         }
     }
 
-    if(registrationBegin) {
+    if(!fetchingRegistrationOptionsSuccess) {
         return (
             <>
                 <h1>Registrierung</h1>
@@ -101,13 +73,13 @@ export default function Registration() {
                         <input value={userName}
                                onChange={(userNameChangeEvent) => setUserName(userNameChangeEvent.target.value)}
                                type={"text"}
-                               disabled={fetchingRegistrationOptions}
+                               disabled={loading}
                                className={"form-control"} placeholder={"Benutzername"}
                                aria-label={"Benutzername"} aria-describedby={"userName-addon"}/>
                     </div>
 
                     {/* Show the button as disabled and with a loading animation only if data are currently fetched from the backend */}
-                    {!fetchingRegistrationOptions ? (
+                    {!loading ? (
                     <button onClick={getRegistrationOptions} type={"button"} disabled={!browserSupportsWebAuthn()} className={"btn btn-primary mb-3"}>
                         Bestätigen
                     </button>
@@ -118,8 +90,14 @@ export default function Registration() {
                     </button>
                     )}
                 </form>
-                {!fetchingRegistrationOptionsSuccess && <ErrorComponent errorMessage={currentError}/>}
+                {(errorState !== ErrorState.success) && <ErrorComponent errorState = {errorState} errorMessage={currentError}/>}
             </>
         )
+    } else if(fetchingRegistrationOptionsSuccess && !completeRegistrationSuccess) {
+        return(
+            <RegistrationCompletion registrationOptions={registrationOptions} setRegistrationSuccess={setCompleteRegistrationSuccess} />
+        );
+    } else {
+        return(<></>);
     }
 }

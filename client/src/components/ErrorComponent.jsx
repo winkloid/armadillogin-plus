@@ -1,5 +1,10 @@
-export default function ErrorComponent({ errorMessage }) {
+import {ErrorState} from "../types/errorState.js";
+export default function ErrorComponent({ errorState, errorMessage }) {
     return(
-        <><p>{errorMessage}</p></>
+        <>{!(errorState === ErrorState.success) && (
+            <div>
+                <p>{errorMessage}</p>
+            </div>)}
+        </>
     );
 }
