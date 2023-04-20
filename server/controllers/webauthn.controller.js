@@ -8,6 +8,8 @@ const origin = "http://" + rpId + ":" + process.env.clientPort;
 const {
     generateRegistrationOptions,
     verifyRegistrationResponse,
+    generateAuthenticationOptions,
+    verifyAuthenticationResponse
 } = require("@simplewebauthn/server");
 const {data} = require("express-session/session/cookie");
 
@@ -84,6 +86,7 @@ const registrationOptions = async (req, res) => {
     }
 }
 
+// PUBLIC
 const completeRegistration =  async (req, res) => {
     if (!req.body) {
         return res.status(400).send("Fehlerhafte Anfrage: Es wurde eine leere Registration-Response übermittelt.");
@@ -159,19 +162,70 @@ async function createNewUser(userName) {
     })
 }
 
-// only for debugging
-const writeUserToDb = (req, res) => {
-    const newUser = new UserModel({
+/*
+Authentication
+ */
+const authenticationOptions = async (req, res) => {
+    if(!req.body.userName) {
+        return res.status(400).send("Kein Benutzername angegeben. Bitte geben Sie einen Benutzernamen an.");
+    }
+
+    // fetch user information from database
+    const fetchedUserInformation = await UserModel.findOne({
         userName: req.body.userName,
-    }).save().then((databaseResponse) => {
-        return res.status(200).send("User saved.\n" + databaseResponse);
-    }).catch((error) => {
-        return res.status(500).send("Server error:\n" + error);
+        isRegistered: true
+    }).exec().then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((databaseError) => {
+        return {success: 0, content: databaseError};
     });
-} 
+
+    // handle errors in fetched user information
+    if(fetchedUserInformation.success === 0) {
+        return res.status(500).send("Interner Server Fehler - Abruf von Benutzerinformationen aus der Datenbank nicht möglich. \nFehlerbeschreibung:\n"+ fetchedUserInformation.content);
+    }
+    if(fetchedUserInformation.success === 1 && fetchedUserInformation.content === null) {
+        return res.status(404).send("Ein registrierter Benutzer mit dem angegebenen Benutzernamen konnte nicht gefunden werden. Bitte überprüfen Sie den angegebenen Benutzernamen.");
+    }
+    const user = fetchedUserInformation.content;
+
+    // fetch authenticator information of the authenticators registered by the provided user
+    const fetchedAuthenticatorInformation = await WebAuthnAuthenticatorModel.find({
+        userReference: user._id
+    }).exec().then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((databaseError) => {
+        return {success: 0, content: databaseError};
+    });
+
+    // handle errors in fetched authenticator information
+    if(fetchedAuthenticatorInformation.success === 0) {
+        return res.status(500).send("Interner Server Fehler - Abruf von Authenticator-Informationen aus der Datenbank nicht möglich. \nFehlerbeschreibung:\n" + fetchedAuthenticatorInformation.content);
+    }
+    if(fetchedAuthenticatorInformation.success === 1 && fetchedAuthenticatorInformation.content === []) {
+        return res.status(404).send("Für den angegebenen Benutzer wurden keine Authenticators in der Datenbank gefunden.");
+    }
+    const userAuthenticators = fetchedAuthenticatorInformation.content;
+
+    const authenticationOptions = generateAuthenticationOptions({
+        allowCredentials: userAuthenticators.map((userAuthenticator) => ({
+            // reconvert the credentialId of the authenticator which is stored as Buffer in the DB back to UInt8Array
+            id: new Uint8Array(userAuthenticator.credentialId.buffer),
+            type: "public-key",
+            transports: userAuthenticator.transports,
+        })),
+        userVerification: "discouraged",
+    });
+
+    req.session.userName = req.body.userName;
+    req.session.userId = user._id;
+    req.session.currentChallenge = authenticationOptions.challenge;
+
+    return res.status(200).send(authenticationOptions);
+}
 
 module.exports = {
     registrationOptions,
     completeRegistration,
-    writeUserToDb
+    authenticationOptions
 }

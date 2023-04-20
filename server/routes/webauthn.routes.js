@@ -1,13 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const {
-    writeUserToDb, registrationOptions, completeRegistration
+    registrationOptions, completeRegistration, authenticationOptions
 } = require("../controllers/webauthn.controller");
 
+// WebAuthn Registration
 router.post("/registrationOptions", registrationOptions);
 router.post("/completeRegistration", completeRegistration);
 
-// only for debugging
-router.post("/writeUser", writeUserToDb);
+// WebAuthn Authentication
+router.get("/authenticationOptions", authenticationOptions);
+
 
 module.exports = router;
