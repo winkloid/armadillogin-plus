@@ -6,6 +6,7 @@ const WebAuthnAuthenticatorSchema = new Schema({
         type: String,
         ref: "UserModel"
     },
+    customCredentialName: {type: String},
     credentialId: {type: Buffer},
     credentialPublicKey: {type: Buffer},
     counter: {type: Number},

@@ -16,11 +16,14 @@ const {data} = require("express-session/session/cookie");
 
 const maxRetriesOnError = 10;
 
-// PUBLIC
+// @desc    generate registration options, e.g. whether user verification shall be used, type of authenticators, etc.
+// @route   POST /api/webauthn/registrationOptions
+// @access  Public
 const registrationOptions = async (req, res) => {
     if(!req.body.userName) {
         return res.status(400).send("Kein Benutzername angegeben. Bitte geben Sie einen Benutzernamen an.");
     }
+
     const isUserRegistered = await UserModel.findOne({
         userName: req.body.userName
     }).exec().then(async (databaseResponse) => {
@@ -65,6 +68,7 @@ const registrationOptions = async (req, res) => {
                 return res.status(500).send("Internal Server Error: not enough free user Ids available.");
             }
 
+            req.session.isAuthenticated = false;
             req.session.userName = req.body.userName;
             req.session.userId = newlyCreatedUser.content._id;
 
@@ -89,7 +93,7 @@ const registrationOptions = async (req, res) => {
 
 // PUBLIC
 const completeRegistration =  async (req, res) => {
-    if (!req.body) {
+    if (!req.body.registrationResponse) {
         return res.status(400).send("Fehlerhafte Anfrage: Es wurde eine leere Registration-Response übermittelt.");
     }
     const currentChallenge = req.session.currentChallenge;
@@ -97,7 +101,7 @@ const completeRegistration =  async (req, res) => {
     let registrationVerification;
     try {
         registrationVerification = await verifyRegistrationResponse({
-            response: req.body,
+            response: req.body.registrationResponse,
             expectedChallenge: currentChallenge,
             expectedOrigin: origin,
             expectedRPID: rpId,
@@ -138,10 +142,11 @@ const completeRegistration =  async (req, res) => {
                     // Add authenticator to database if the specified user is not already registered
                     const newWebAuthnAuthenticator = await WebAuthnAuthenticatorModel.create({
                         userReference: req.session.userId,
+                        customCredentialName: req.body.authenticatorName,
                         credentialId: Buffer.from(credentialId),
                         credentialPublicKey: Buffer.from(credentialPublicKey),
                         counter: counter,
-                        transports: req.body.response.transports
+                        transports: req.body.registrationResponse.response.transports
                     });
                     return res.status(201).send("Der Benutzer" + req.session.userName + " wurde registriert. \n" + registrationVerified);
                 } catch(error) {
@@ -205,6 +210,7 @@ const authenticationOptions = async (req, res) => {
         userVerification: "discouraged",
     });
 
+    req.session.isAuthenticated = false;
     req.session.userName = req.body.userName;
     req.session.userId = user._id;
     req.session.currentChallenge = authenticationOptions.challenge;
@@ -314,9 +320,14 @@ const updateAuthenticatorCounter = async (authenticatorId, authenticationInforma
     });
 }
 
+const addNewAuthenticatorOptions = (req, res) => {
+    return res.status(200).send("Herzlichen Glückwunsch, Sie sind autorisiert.");
+}
+
 module.exports = {
     registrationOptions,
     completeRegistration,
     authenticationOptions,
-    completeAuthentication
+    completeAuthentication,
+    addNewAuthenticatorOptions
 }

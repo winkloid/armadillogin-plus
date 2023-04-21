@@ -9,6 +9,7 @@ export default function RegistrationCompletion({registrationOptions, setRegistra
     const [errorState, setErrorState] = useState(ErrorState.success);
     const [currentError, setCurrentError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [customAuthenticatorName, setCustomAuthenticatorName] = useState("");
 
     const completeRegistration = async () => {
         setIsLoading(true);
@@ -36,7 +37,10 @@ export default function RegistrationCompletion({registrationOptions, setRegistra
             let completeRegistrationResponse = await axios({
                 method: 'post',
                 url: 'http://localhost:5000/api/webauthn/completeRegistration',
-                data: registrationResponse
+                data: {
+                    authenticatorName: customAuthenticatorName,
+                    registrationResponse: registrationResponse
+                }
             }).then((response) => {
                 return response;
             });
@@ -60,6 +64,19 @@ export default function RegistrationCompletion({registrationOptions, setRegistra
             <h1>Registrierung Ihres FIDO2/WebAuthn-Authenticators</h1>
             <p>Damit nur Sie sich in Ihren persönlichen Mitgliederbereich einloggen können, muss ArmadilLogin PLUS Ihre Identität nachvollziehen können. Bisher verwendet ein Großteil der heute verfügbaren Software dazu Passwörter. ArmadilLogin PLUS erlaubt es Ihnen, Ihre Identität passwortlos nachzuweisen. Hierzu ist ein sogenannter "Authenticator" erforderlich. Ein Authenticator kann entweder bereits in Ihrem Gerät verbaut sein und über biometrische Merkmale wie Fingerabdrücke, Iris-Scan, etc. entsperrt werden oder in Form eines Hardware-Sicherheitsschlüssels vorliegen.</p>
             <p>Um Ihr Konto bei ArmadilLogin PLUS mit einem Authenticator zu verknüpfen, drücken Sie den Knpof "Los geht's".</p>
+
+            <p>Optional können Sie hier auch einen Namen für den neu zu registrierenden Authenticator vergeben. Das kann später helfen, den Überblick über alle Ihrem Konto hinzugefügten Authenticators zu behalten.</p>
+            <form>
+                <div className={"input-group mb-3"}>
+                    <span className={"input-group-text"} id={"authenticatorName-addon"}>🔑</span>
+                    <input value={customAuthenticatorName}
+                           onChange={(authenticatorNameChange) => setCustomAuthenticatorName(authenticatorNameChange.target.value)}
+                           type={"text"}
+                           disabled={isLoading}
+                           className={"form-control"} placeholder={"Authenticator-Name (optional)"}
+                           aria-label={"Name Ihres Authenticators"} aria-describedby={"authenticatorName-addon"}/>
+                </div>
+            </form>
             <button onClick={completeRegistration} type={"button"} className={"btn btn-primary mb-3"}>
                 Los geht's
             </button>
