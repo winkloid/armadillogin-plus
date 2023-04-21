@@ -95,7 +95,9 @@ export default function Login() {
                 {(errorState !== ErrorState.success) && <ErrorComponent errorState={errorState} errorMessage={currentError}/>}
             </>
         )
-    } else {
+    } else if(fetchingAuthenticationOptionsSuccess && !completeAuthenticationSuccess) {
         return(<AuthenticationCompletion authenticationOptions = {authenticationOptions} setAuthenticationSuccess = {setCompleteAuthenticationSuccess}/>);
+    } else {
+        return(<p>SUCCESS!</p>);
     }
 }

@@ -3,22 +3,49 @@ import ErrorComponent from "./ErrorComponent.jsx";
 import {useState} from "react";
 import {startAuthentication} from "@simplewebauthn/browser";
 import terminal from "virtual:terminal";
+import axios from "axios";
 
 export default function AuthenticationCompletion ( {authenticationOptions, setAuthenticationSuccess}) {
     const [errorState, setErrorState] = useState(ErrorState.success);
     const [currentError, setCurrentError] = useState("");
 
     const completeAuthentication = async () => {
-        let asseResp;
+        let authenticationResponse;
         try {
             // Pass the options to the authenticator and wait for a response
-            asseResp = await startAuthentication(authenticationOptions);
-        } catch (error) {
-            setCurrentError(error);
+            authenticationResponse = await startAuthentication(authenticationOptions);
+        } catch (startRegistrationError) {
+            if(startRegistrationError.name === "NotAllowedError") {
+                setCurrentError(startRegistrationError.name + ": Der Benutzer hat den Authentifizierungsvorgang nicht erlaubt. Das kann passieren, wenn Sie die Meldung zum Verbinden des Authenticators mit Ihrem Gerät vorzeitig schließen. Bitte versuchen Sie es erneut.");
+            } else if(startRegistrationError.name === "InvalidStateError"){
+                setCurrentError(startRegistrationError.name + ": Der Authenticator, den Sie zum Login verwendet haben, scheint nicht mit dem angegebenen Benutzerkonto verknüpft zu sein. Falls Sie ihn zu Ihrem Benutzerkonto hinzufügen möchten, loggen Sie sich mit einem bereits verknüpften Authenticator in Ihr Konto ein und fügen Sie ihn innerhalb Ihrer Kontoeinstellungen hinzu.");
+            }
             setErrorState(ErrorState.completeAuthenticationError);
             return;
         }
-        terminal.log(asseResp);
+        terminal.log(authenticationResponse);
+
+        try {
+            let completeAuthenticationResponse = await axios({
+                method: 'post',
+                url: 'http://localhost:5000/api/webauthn/completeAuthentication',
+                data: authenticationResponse
+            }).then((response) => {
+                return response;
+            });
+
+            if(completeAuthenticationResponse.status !== 200) {
+                setCurrentError(completeAuthenticationResponse.data);
+                setErrorState(ErrorState.completeAuthenticationError);
+            } else {
+                setAuthenticationSuccess(true);
+                setErrorState(ErrorState.success);
+            }
+        } catch (error) {
+            setCurrentError("Fehler bei der Verbindung mit dem Backend. Bitte prüfen Sie Ihre Internetverbindung.");
+            setErrorState(ErrorState.connectionError);
+        }
+
     }
 
     return (

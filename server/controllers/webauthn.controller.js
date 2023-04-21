@@ -11,6 +11,7 @@ const {
     generateAuthenticationOptions,
     verifyAuthenticationResponse
 } = require("@simplewebauthn/server");
+const base64url = require("base64url");
 const {data} = require("express-session/session/cookie");
 
 const maxRetriesOnError = 10;
@@ -171,14 +172,7 @@ const authenticationOptions = async (req, res) => {
     }
 
     // fetch user information from database
-    const fetchedUserInformation = await UserModel.findOne({
-        userName: req.body.userName,
-        isRegistered: true
-    }).exec().then((databaseResponse) => {
-        return {success: 1, content: databaseResponse};
-    }).catch((databaseError) => {
-        return {success: 0, content: databaseError};
-    });
+    const fetchedUserInformation = await fetchUserInformation(req.body.userName);
 
     // handle errors in fetched user information
     if(fetchedUserInformation.success === 0) {
@@ -190,13 +184,7 @@ const authenticationOptions = async (req, res) => {
     const user = fetchedUserInformation.content;
 
     // fetch authenticator information of the authenticators registered by the provided user
-    const fetchedAuthenticatorInformation = await WebAuthnAuthenticatorModel.find({
-        userReference: user._id
-    }).exec().then((databaseResponse) => {
-        return {success: 1, content: databaseResponse};
-    }).catch((databaseError) => {
-        return {success: 0, content: databaseError};
-    });
+    const fetchedAuthenticatorInformation = await fetchAuthenticatorInformation(user);
 
     // handle errors in fetched authenticator information
     if(fetchedAuthenticatorInformation.success === 0) {
@@ -224,8 +212,111 @@ const authenticationOptions = async (req, res) => {
     return res.status(200).send(authenticationOptions);
 }
 
+const completeAuthentication = async (req, res) => {
+    // fetch user information from database
+    const fetchedUserInformation = await fetchUserInformation(req.session.userName);
+
+    // handle errors in fetched user information
+    if(fetchedUserInformation.success === 0) {
+        return res.status(500).send("Interner Server Fehler - Abruf von Benutzerinformationen aus der Datenbank nicht möglich. \nFehlerbeschreibung:\n"+ fetchedUserInformation.content);
+    }
+    if(fetchedUserInformation.success === 1 && fetchedUserInformation.content === null) {
+        return res.status(404).send("Ein registrierter Benutzer mit dem angegebenen Benutzernamen konnte nicht gefunden werden. Bitte überprüfen Sie den angegebenen Benutzernamen.");
+    }
+    const user = fetchedUserInformation.content;
+
+    console.log(req.body.rawId);
+    // fetch authenticator information of the authenticators registered by the provided user
+    const fetchedAuthenticatorById = await fetchAuthenticatorById(user._id, req.body.rawId);
+
+    // handle errors in fetched authenticator information
+    if(fetchedAuthenticatorById.success === 0) {
+        return res.status(500).send("Interner Server Fehler - Abruf von Authenticator-Informationen aus der Datenbank nicht möglich. \nFehlerbeschreibung:\n" + fetchedAuthenticatorInformation.content);
+    }
+    if(fetchedAuthenticatorById.success === 1 && fetchedAuthenticatorById.content === null) {
+        return res.status(404).send("Der ausgewählte Authenticator wurde in der Datenbank nicht gefunden. Bitte stellen Sie sicher, dass er tatsächlich mit Ihrem Nutzerkonto verknüpft ist.");
+    }
+    const userAuthenticator = fetchedAuthenticatorById.content;
+
+    const currentChallenge = req.session.currentChallenge;
+    let authenticationVerification;
+    try {
+        authenticationVerification = await verifyAuthenticationResponse({
+            response: req.body,
+            expectedChallenge: currentChallenge,
+            expectedOrigin: origin,
+            expectedRPID: rpId,
+            authenticator: userAuthenticator,
+            requireUserVerification: false,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(400).send("Fehler beim Auslesen der Informationen aus der Registration-Response des Authenticators.\n" + error);
+    }
+
+    if(authenticationVerification.verified) {
+        const updatedCounter = await updateAuthenticatorCounter(userAuthenticator._id, authenticationVerification.authenticationInfo);
+        if(updatedCounter.success === 0) {
+            return res.status(500).send("Der Login-Zähler des Authenticators konnte in der Datenbank nicht aktualisiert werden.");
+        }
+    }
+
+    req.session.currentChallenge = undefined;
+    req.session.isAuthenticated = true;
+    return res.status(200).send("Der Benutzer " + req.session.userName + " wurde erfolgreich authentifiziert.");
+}
+
+// PRIVATE
+const fetchUserInformation = async (userToFetch) => {
+    // fetch user information from database
+    return await UserModel.findOne({
+        userName: userToFetch,
+        isRegistered: true
+    }).exec().then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((databaseError) => {
+        return {success: 0, content: databaseError};
+    });
+}
+
+// PRIVATE
+const fetchAuthenticatorInformation = async (currentUser) => {
+    return await WebAuthnAuthenticatorModel.find({
+        userReference: currentUser._id
+    }).exec().then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((databaseError) => {
+        return {success: 0, content: databaseError};
+    });
+}
+
+// PRIVATE
+const fetchAuthenticatorById = async (userId, authenticatorId) => {
+    return await WebAuthnAuthenticatorModel.findOne({
+        userReference: userId,
+        credentialId: base64url.toBuffer(authenticatorId),
+    }).exec().then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((databaseError) => {
+        return {success: 0, content: databaseError};
+    });
+}
+
+// PRIVATE
+const updateAuthenticatorCounter = async (authenticatorId, authenticationInformation) => {
+    return await WebAuthnAuthenticatorModel.updateOne({
+        _id: authenticatorId
+    },
+        {$set: {counter: authenticationInformation.newCounter}}).exec().then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((databaseError) => {
+        return {success: 0, content: databaseError};
+    });
+}
+
 module.exports = {
     registrationOptions,
     completeRegistration,
-    authenticationOptions
+    authenticationOptions,
+    completeAuthentication
 }
