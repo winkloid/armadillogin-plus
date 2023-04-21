@@ -157,17 +157,6 @@ const completeRegistration =  async (req, res) => {
     } else return res.status(400).send("Fehler beim Auslesen der Informationen aus der Registration-Response des Authenticators.");
 }
 
-// PRIVATE
-async function createNewUser(userName) {
-    return await UserModel.create({
-        userName: userName
-    }).then((databaseResponse) => {
-        return {success: 1, content: databaseResponse};
-    }).catch((error) => {
-        return {success: 0, content: error};
-    })
-}
-
 /*
 Authentication
  */
@@ -272,6 +261,110 @@ const completeAuthentication = async (req, res) => {
     return res.status(200).send("Der Benutzer " + req.session.userName + " wurde erfolgreich authentifiziert.");
 }
 
+const addNewAuthenticatorOptions = async (req, res) => {
+    const userId = req.session.userId;
+    const userName = req.session.userName;
+
+    // Before an authenticator is written with the userId that is stored in the session, check whether the user is still in the system to keep the database consistent
+    const userResponse = await UserModel.findOne({
+        _id: userId,
+        userName: userName,
+        isRegistered: true
+    }).exec().then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((databaseError) => {
+        return {success: 0, databaseError};
+    });
+    if(!userResponse.success) {
+        return res.status(500).send("Interner Serverfehler: Probleme beim Kommunizieren mit der Datenbank:\n" + userResponse.content);
+    }
+    if(userResponse.success && !(userResponse.content)) {
+        return res.status(401).send("Ein registrierter Nutzer wie der von Ihnen angegebene wurde nicht gefunden.");
+    }
+    const user = userResponse.content;
+
+    // retrieve all authenticators that the user registered yet
+    const fetchedAuthenticatorInformation = await fetchAuthenticatorInformation(user);
+    // handle errors in fetched authenticator information
+    if(fetchedAuthenticatorInformation.success === 0) {
+        return res.status(500).send("Interner Server Fehler - Abruf von Authenticator-Informationen aus der Datenbank nicht möglich. \nFehlerbeschreibung:\n" + fetchedAuthenticatorInformation.content);
+    }
+    const userAuthenticators = fetchedAuthenticatorInformation.content;
+
+    const options = generateRegistrationOptions({
+        rpName: rpName,
+        rpID: rpId,
+        userID: userId,
+        userName: userName,
+        attestationType: "none",
+        excludeCredentials: userAuthenticators,
+        authenticatorSelection: {
+            userVerification: "discouraged"
+        }
+    });
+    req.session.currentChallenge = options.challenge;
+    return res.status(200).send(options);
+}
+
+const addNewAuthenticatorCompletion = async (req, res) => {
+    if (!req.body.registrationResponse) {
+        return res.status(400).send("Fehlerhafte Anfrage: Es wurde eine leere Registration-Response übermittelt.");
+    }
+
+    let registrationVerification;
+    try {
+        registrationVerification = await verifyRegistrationResponse({
+            response: req.body.registrationResponse,
+            expectedChallenge: currentChallenge,
+            expectedOrigin: origin,
+            expectedRPID: rpId,
+            requireUserVerification: false
+        });
+    } catch (verificationError) {
+        console.log(verificationError);
+        return res.status(400).send("Fehler beim Verifizieren der Registration-Response: \n" + verificationError.message);
+    }
+
+    const registrationVerified = registrationVerification.verified;
+    const registrationInformation = registrationVerification.registrationInfo;
+
+    if(!(registrationVerified && registrationInformation)) {
+        return res.status(400).send("Fehler beim Auslesen der Informationen aus der Registration-Response des Authenticators.");
+    }
+    const credentialPublicKey = registrationInformation.credentialPublicKey;
+    const credentialId = registrationInformation.credentialID;
+    const counter = registrationInformation.counter;
+    try {
+        // Add authenticator to database
+        await WebAuthnAuthenticatorModel.create({
+            userReference: req.session.userId,
+            customCredentialName: req.body.authenticatorName,
+            credentialId: Buffer.from(credentialId),
+            credentialPublicKey: Buffer.from(credentialPublicKey),
+            counter: counter,
+            transports: req.body.registrationResponse.response.transports
+        });
+        return res.status(201).send("Der Benutzer" + req.session.userName + " wurde registriert. \n" + registrationVerified);
+    } catch(error) {
+        return res.status(500).send("Interner Server Fehler beim Hinzufügen des Authenticators zur Datenbank." + error);
+    }
+}
+
+/*
+Private helper functions
+ */
+
+// PRIVATE
+async function createNewUser(userName) {
+    return await UserModel.create({
+        userName: userName
+    }).then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((error) => {
+        return {success: 0, content: error};
+    })
+}
+
 // PRIVATE
 const fetchUserInformation = async (userToFetch) => {
     // fetch user information from database
@@ -311,8 +404,8 @@ const fetchAuthenticatorById = async (userId, authenticatorId) => {
 // PRIVATE
 const updateAuthenticatorCounter = async (authenticatorId, authenticationInformation) => {
     return await WebAuthnAuthenticatorModel.updateOne({
-        _id: authenticatorId
-    },
+            _id: authenticatorId
+        },
         {$set: {counter: authenticationInformation.newCounter}}).exec().then((databaseResponse) => {
         return {success: 1, content: databaseResponse};
     }).catch((databaseError) => {
@@ -320,14 +413,11 @@ const updateAuthenticatorCounter = async (authenticatorId, authenticationInforma
     });
 }
 
-const addNewAuthenticatorOptions = (req, res) => {
-    return res.status(200).send("Herzlichen Glückwunsch, Sie sind autorisiert.");
-}
-
 module.exports = {
     registrationOptions,
     completeRegistration,
     authenticationOptions,
     completeAuthentication,
-    addNewAuthenticatorOptions
+    addNewAuthenticatorOptions,
+    addNewAuthenticatorCompletion
 }

@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const {
-    registrationOptions, completeRegistration, authenticationOptions, completeAuthentication, addNewAuthenticatorOptions
+    registrationOptions, completeRegistration, authenticationOptions, completeAuthentication, addNewAuthenticatorOptions,
+    addNewAuthenticatorCompletion
 } = require("../controllers/webauthn.controller");
 const {isAuthenticatedMiddleware} = require("../middleware/isAuthenticatedMiddleware");
 
@@ -15,5 +16,6 @@ router.post("/completeAuthentication", completeAuthentication);
 
 // Operations that need Authorization
 router.get("/addNewAuthenticatorOptions", isAuthenticatedMiddleware, addNewAuthenticatorOptions);
+router.post("/addNewAuthenticatorCompletion", isAuthenticatedMiddleware, addNewAuthenticatorCompletion);
 
 module.exports = router;

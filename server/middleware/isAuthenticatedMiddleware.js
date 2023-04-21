@@ -1,6 +1,6 @@
 const isAuthenticatedMiddleware = (req, res, next) => {
     if(req.session) {
-        if(req.session.userName && req.session.isAuthenticated) {
+        if(req.session.isAuthenticated && req.session.userName && req.session.userId) {
             next();
         }
         else {
