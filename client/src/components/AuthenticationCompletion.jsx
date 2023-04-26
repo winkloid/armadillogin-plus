@@ -45,7 +45,6 @@ export default function AuthenticationCompletion ( {authenticationOptions, setAu
             setCurrentError("Fehler bei der Verbindung mit dem Backend. Bitte prüfen Sie Ihre Internetverbindung.");
             setErrorState(ErrorState.connectionError);
         }
-
     }
 
     return (

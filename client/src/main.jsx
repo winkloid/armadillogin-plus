@@ -15,6 +15,7 @@ import ErrorPage from "./errorpage.jsx";
 import Registration from "./pages/registration.jsx";
 import Login from "./pages/login.jsx";
 import Welcome from "./pages/welcome.jsx";
+import Private from "./pages/private.jsx";
 
 const router = createBrowserRouter([
     {
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
             {
                 path: "login",
                 element: <Login />,
+            },
+            {
+                path: "private",
+                element: <Private />,
             }
         ]
     },

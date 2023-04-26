@@ -297,7 +297,10 @@ const addNewAuthenticatorOptions = async (req, res) => {
         userID: userId,
         userName: userName,
         attestationType: "none",
-        excludeCredentials: userAuthenticators,
+        excludeCredentials: userAuthenticators.map((userAuthenticator) => ({
+            id: Uint8Array.from(userAuthenticator.credentialId),
+            type: 'public-key',
+        })),
         authenticatorSelection: {
             userVerification: "discouraged"
         }
@@ -315,7 +318,7 @@ const addNewAuthenticatorCompletion = async (req, res) => {
     try {
         registrationVerification = await verifyRegistrationResponse({
             response: req.body.registrationResponse,
-            expectedChallenge: currentChallenge,
+            expectedChallenge: req.session.currentChallenge,
             expectedOrigin: origin,
             expectedRPID: rpId,
             requireUserVerification: false
@@ -331,9 +334,23 @@ const addNewAuthenticatorCompletion = async (req, res) => {
     if(!(registrationVerified && registrationInformation)) {
         return res.status(400).send("Fehler beim Auslesen der Informationen aus der Registration-Response des Authenticators.");
     }
+
     const credentialPublicKey = registrationInformation.credentialPublicKey;
     const credentialId = registrationInformation.credentialID;
     const counter = registrationInformation.counter;
+
+    /*
+    fetch Authenticator and decide whether the specified device is already linked to the user account
+     */
+    const fetchedAuthenticatorById = await fetchAuthenticatorById(req.session.userId, credentialId);
+    // handle errors in fetched authenticator information
+    if(fetchedAuthenticatorById.success === 0) {
+        return res.status(500).send("Interner Server Fehler - Abruf von Authenticator-Informationen aus der Datenbank nicht möglich. \nFehlerbeschreibung:\n" + fetchedAuthenticatorInformation.content);
+    }
+    if(fetchedAuthenticatorById.success === 1 && fetchedAuthenticatorById.content !== null) {
+        return res.status(400).send("Fehlerhafte Anfrage: Der Authenticator ist bereits mit Ihrem Benutzerkonto verknüpft.");
+    }
+
     try {
         // Add authenticator to database
         await WebAuthnAuthenticatorModel.create({
@@ -344,7 +361,7 @@ const addNewAuthenticatorCompletion = async (req, res) => {
             counter: counter,
             transports: req.body.registrationResponse.response.transports
         });
-        return res.status(201).send("Der Benutzer" + req.session.userName + " wurde registriert. \n" + registrationVerified);
+        return res.status(201).send("Der Authenticator mit dem personalisierten Name" + req.body.authenticatorName + " wurde hinzugefügt. \n" + registrationVerified);
     } catch(error) {
         return res.status(500).send("Interner Server Fehler beim Hinzufügen des Authenticators zur Datenbank." + error);
     }
@@ -378,7 +395,9 @@ const fetchUserInformation = async (userToFetch) => {
     });
 }
 
-// PRIVATE
+// @desc returns an array of authenticators that are currently linked to the account of currentUser
+// @param currentUser: Instance of UserModel for which we want to retrieve all authenticators currently linked to it
+// @access private
 const fetchAuthenticatorInformation = async (currentUser) => {
     return await WebAuthnAuthenticatorModel.find({
         userReference: currentUser._id
