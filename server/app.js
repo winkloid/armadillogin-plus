@@ -47,6 +47,7 @@ app.use(session({
 }));
 
 app.use("/api/webauthn", webauthn);
+app.use("/api/account", account)
 
 app.listen(port, () => {
     console.log("Express-Server gestartet: localhost:" + port);

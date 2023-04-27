@@ -1,5 +1,7 @@
 import AuthenticatorSettings from "../components/privatePageComponents/AuthenticatorSettingsComponent.jsx";
 import {useState} from "react";
+import AccountSettingsComponent from "../components/privatePageComponents/AccountSettingsComponent.jsx";
+import AccountSettings from "../components/privatePageComponents/AccountSettingsComponent.jsx";
 
 export default function Private () {
     const [isloggedIn, setIsLoggedIn] = useState(true);
@@ -12,6 +14,7 @@ export default function Private () {
                 <h2>Authenticator-Einstellungen</h2>
                 <AuthenticatorSettings setIsLoggedIn={setIsLoggedIn} />
                 <h2 className={"mb-3"}>Benutzerkonto-Einstellungen</h2>
+                <AccountSettings setIsLoggedIn={setIsLoggedIn}/>
             </>
         );
     } else {

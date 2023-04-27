@@ -135,6 +135,8 @@ export default function AuthenticatorSettings({setIsLoggedIn}) {
             } else {
                 setRegistrationSuccess(true);
                 setErrorState(ErrorState.success);
+                setCustomAuthenticatorName("");
+                fetchAuthenticatorList();
             }
         } catch (error) {
             setCurrentError("Fehler bei der Verbindung mit dem Backend. Bitte prüfen Sie Ihre Internetverbindung.");
