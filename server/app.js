@@ -43,7 +43,6 @@ app.use(session({
         mongoOptions: {useNewUrlParser:true,useUnifiedTopology:true,directConnection: true},
         ttl: 60 * 60, // 1 hour
         collectionName: "loginSessions",
-        stringify: true
     })
 }));
 

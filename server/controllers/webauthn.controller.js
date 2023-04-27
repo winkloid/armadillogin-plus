@@ -367,6 +367,35 @@ const addNewAuthenticatorCompletion = async (req, res) => {
     }
 }
 
+// @desc    Retrieve all authenticators linked to the specified user account. This function only returns customCredentialName, credentialId and credentialPublicKey of those authentictors
+// @route   GET /api/webauthn/getUserAuthenticatorList
+// @access  Public
+const getUserAuthenticatorList = async (req, res) => {
+    let userAuthenticators = [];
+
+    // retrieve authenticators of current user from database
+    const userAuthenticatorResponse = await WebAuthnAuthenticatorModel.find(
+        {userReference: req.session.userId}
+    ).exec().then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((databaseError) => {
+        return {success: 0, content: databaseError};
+    });
+
+    if(userAuthenticatorResponse.success === 0) {
+        return res.status(500).send("Interner Serverfehler bei der Kommunikation mit der Datenbank zum Abruf der Nutzer-Authenticators.\n" + userAuthenticatorResponse.content);
+    }
+
+    // map the retrieved array of user authenticators so that only credentialId, credentialPublicKey und credentialCustomName are in the response
+    userAuthenticators = userAuthenticatorResponse.content.map((userAuthenticator) => ({
+        customCredentialName: userAuthenticator.customCredentialName,
+        credentialId: base64url(userAuthenticator.credentialId),
+        credentialPublicKey: base64url(userAuthenticator.credentialPublicKey),
+    }));
+
+    return res.status(200).send(userAuthenticators);
+}
+
 /*
 Private helper functions
  */
@@ -438,5 +467,6 @@ module.exports = {
     authenticationOptions,
     completeAuthentication,
     addNewAuthenticatorOptions,
-    addNewAuthenticatorCompletion
+    addNewAuthenticatorCompletion,
+    getUserAuthenticatorList
 }
