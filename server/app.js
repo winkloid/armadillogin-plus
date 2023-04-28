@@ -5,6 +5,7 @@ const MongoStore = require("connect-mongo");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const webauthn = require("./routes/webauthn.routes");
+const account = require("./routes/account.routes");
 
 const app = express();
 const port = 5000;
@@ -41,6 +42,7 @@ app.use(session({
     store: MongoStore.create({
         mongoUrl: process.env.MONGODB_BASE_STRING,
         mongoOptions: {useNewUrlParser:true,useUnifiedTopology:true,directConnection: true},
+        stringify: false,
         ttl: 60 * 60, // 1 hour
         collectionName: "loginSessions",
     })

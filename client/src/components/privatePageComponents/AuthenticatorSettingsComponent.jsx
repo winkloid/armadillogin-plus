@@ -39,7 +39,6 @@ export default function AuthenticatorSettings({setIsLoggedIn}) {
             });
 
             if(authenticatorListResponse.status === 200) {
-                terminal.log(authenticatorListResponse.data);
                 setAuthenticatorList(authenticatorListResponse.data);
                 setErrorState(ErrorState.success);
             } else if(authenticatorListResponse.status === 401) {
@@ -62,7 +61,6 @@ export default function AuthenticatorSettings({setIsLoggedIn}) {
     const handleAuthenticatorAddition = async () => {
         setIsLoading(true);
 
-        terminal.log("Aufgerufen.");
         let registrationOptions;
         try {
             let optionsResponse = await axios({
@@ -105,7 +103,6 @@ export default function AuthenticatorSettings({setIsLoggedIn}) {
         try {
             // Pass the options to the authenticator and wait for a response
             registrationResponse = await startRegistration(registrationOptions);
-            terminal.log("RegistrationResponse: \n\n" + registrationResponse.rawId);
         } catch (startRegistrationError) {
             if (startRegistrationError.name === "InvalidStateError") {
                 setCurrentError("Fehler: Der Authenticator scheint bereits mit dem angegebenen Benutzer verknüpft zu sein.");
