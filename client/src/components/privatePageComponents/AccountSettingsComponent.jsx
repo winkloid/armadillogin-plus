@@ -21,7 +21,7 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
         try {
             await axios({
                 method: "post",
-                url: "http://localhost:5000" + "/api/account/logOutUser"
+                url: import.meta.env.VITE_BACKEND_BASE_URL + "/api/account/logOutUser"
             });
             setIsLoggedIn(false);
             setErrorState(ErrorState.success);
@@ -38,7 +38,7 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
         try {
             const accountDeletionResponse = await axios({
                 method: "DELETE",
-                url: "http://localhost:5000" + "/api/account/deleteUser"
+                url: import.meta.env.VITE_BACKEND_BASE_URL + "/api/account/deleteUser"
             }).then((response) => {
                 return response;
             });

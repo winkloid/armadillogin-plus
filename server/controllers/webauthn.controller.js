@@ -424,6 +424,7 @@ const deleteAuthenticator = async (req, res) => {
             return res.status(200).send("Der Authenticator wurde erfolgreich aus Ihrem Benutzerkonto entfernt.");
         }
     } catch(authenticatorDeletionError) {
+        console.log(authenticatorDeletionError);
         await mongooseSession.abortTransaction();
         mongooseSession.endSession();
         if(authenticatorDeletionError.name === "TooFewAuthenticatorsError") {

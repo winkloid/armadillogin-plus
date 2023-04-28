@@ -23,12 +23,11 @@ export default function AuthenticationCompletion ( {authenticationOptions, setAu
             setErrorState(ErrorState.completeAuthenticationError);
             return;
         }
-        terminal.log(authenticationResponse);
 
         try {
             let completeAuthenticationResponse = await axios({
                 method: 'post',
-                url: 'http://localhost:5000/api/webauthn/completeAuthentication',
+                url: import.meta.env.VITE_BACKEND_BASE_URL + '/api/webauthn/completeAuthentication',
                 data: authenticationResponse
             }).then((response) => {
                 return response;

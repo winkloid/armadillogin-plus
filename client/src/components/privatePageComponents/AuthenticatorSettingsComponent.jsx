@@ -33,7 +33,7 @@ export default function AuthenticatorSettings({setIsLoggedIn}) {
         try {
             authenticatorListResponse = await axios({
                 method: "get",
-                url: "http://localhost:5000" + "/api/webauthn/getUserAuthenticatorList"
+                url: import.meta.env.VITE_BACKEND_BASE_URL + "/api/webauthn/getUserAuthenticatorList"
             }).then((backendResponse) => {
                 return backendResponse;
             });
@@ -64,7 +64,7 @@ export default function AuthenticatorSettings({setIsLoggedIn}) {
         try {
             const authenticatorDeletionResponse = await axios({
                 method: "delete",
-                url: "http://localhost:5000" + "/api/webauthn/deleteAuthenticator",
+                url: import.meta.env.VITE_BACKEND_BASE_URL + "/api/webauthn/deleteAuthenticator",
                 data: {
                     credentialId: credentialId
                 }
@@ -102,7 +102,7 @@ export default function AuthenticatorSettings({setIsLoggedIn}) {
         try {
             let optionsResponse = await axios({
                 method: 'get',
-                url: 'http://localhost:5000/api/webauthn/addNewAuthenticatorOptions',
+                url: import.meta.env.VITE_BACKEND_BASE_URL + '/api/webauthn/addNewAuthenticatorOptions',
             }).then((response) => {
                 return response;
             });
@@ -154,7 +154,7 @@ export default function AuthenticatorSettings({setIsLoggedIn}) {
         try {
             let completeRegistrationResponse = await axios({
                 method: 'post',
-                url: 'http://localhost:5000/api/webauthn/addNewAuthenticatorCompletion',
+                url: import.meta.env.VITE_BACKEND_BASE_URL + '/api/webauthn/addNewAuthenticatorCompletion',
                 data: {
                     authenticatorName: customAuthenticatorName,
                     registrationResponse: registrationResponse

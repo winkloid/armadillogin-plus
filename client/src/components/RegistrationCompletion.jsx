@@ -36,7 +36,7 @@ export default function RegistrationCompletion({registrationOptions, setRegistra
         try {
             let completeRegistrationResponse = await axios({
                 method: 'post',
-                url: 'http://localhost:5000/api/webauthn/completeRegistration',
+                url: import.meta.env.VITE_BACKEND_BASE_URL + '/api/webauthn/completeRegistration',
                 data: {
                     authenticatorName: customAuthenticatorName,
                     registrationResponse: registrationResponse

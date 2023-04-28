@@ -29,7 +29,7 @@ export default function Registration() {
         try {
             let optionsResponse = await axios({
                 method: 'post',
-                url: 'http://localhost:5000/api/webauthn/registrationOptions',
+                url: import.meta.env.VITE_BACKEND_BASE_URL + '/api/webauthn/registrationOptions',
                 data: {"userName": userName}
             }).then((response) => {
                 return response;
