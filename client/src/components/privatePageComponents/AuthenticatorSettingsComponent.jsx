@@ -52,7 +52,44 @@ export default function AuthenticatorSettings({setIsLoggedIn}) {
             }
             setIsLoading(false);
         } catch (error) {
-            setCurrentError(error);
+            setCurrentError("Fehler bei der Kommunikation mit dem Server. Bitte überprüfen Sie Ihre Internetverbindung.");
+            setErrorState(ErrorState.connectionError);
+            setIsLoading(false);
+        }
+    }
+
+    const handleAuthenticatorDeletion = async (credentialId) => {
+        terminal.log("credentialId:" + credentialId);
+        setIsLoading(true);
+        try {
+            const authenticatorDeletionResponse = await axios({
+                method: "delete",
+                url: "http://localhost:5000" + "/api/webauthn/deleteAuthenticator",
+                data: {
+                    credentialId: credentialId
+                }
+            }).then((response) => {
+                return response;
+            });
+
+            if(authenticatorDeletionResponse.status === 200) {
+                await fetchAuthenticatorList();
+                setErrorState(ErrorState.success);
+            } else if(authenticatorDeletionResponse.status === 401) {
+                setIsLoggedIn(false);
+            } else if(authenticatorDeletionResponse.status === 400) {
+                setCurrentError(authenticatorDeletionResponse.data);
+                setErrorState(errorState.authenticatorDeletionError);
+            } else if(authenticatorDeletionResponse.status === 500) {
+                setCurrentError(authenticatorDeletionResponse.data);
+                setErrorState(errorState.serverError);
+            } else {
+                setCurrentError("Unerwarteter Fehler bei der Kommunikation mit dem Server. Bitte prüfen Sie Ihre Eingaben und Ihre Verbindung.");
+                setErrorState(errorState.authenticatorDeletionError);
+            }
+            setIsLoading(false);
+        } catch(error) {
+            setCurrentError("Fehler bei der Kommunikation mit dem Server. Bitte überprüfen Sie Ihre Internetverbindung.");
             setErrorState(ErrorState.connectionError);
             setIsLoading(false);
         }
@@ -189,7 +226,7 @@ export default function AuthenticatorSettings({setIsLoggedIn}) {
                         </div>
                         <div className="card-body">
                             <h5>Aktuell mit Ihrem Benutzerkonto verknüpfte Authenticators</h5>
-                            <AuthenticatorList authenticatorList={authenticatorList} />
+                            <AuthenticatorList authenticatorList={authenticatorList} handleAuthenticatorDeletion={handleAuthenticatorDeletion}/>
                         </div>
                         <div className={"card-footer"}>
                             <h5>Weiteren Authenticator hinzufügen</h5>

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {
     registrationOptions, completeRegistration, authenticationOptions, completeAuthentication, addNewAuthenticatorOptions,
-    addNewAuthenticatorCompletion, getUserAuthenticatorList
+    addNewAuthenticatorCompletion, getUserAuthenticatorList, deleteAuthenticator
 } = require("../controllers/webauthn.controller");
 const {isAuthenticatedMiddleware} = require("../middleware/isAuthenticatedMiddleware");
 
@@ -18,5 +18,6 @@ router.post("/completeAuthentication", completeAuthentication);
 router.get("/addNewAuthenticatorOptions", isAuthenticatedMiddleware, addNewAuthenticatorOptions);
 router.post("/addNewAuthenticatorCompletion", isAuthenticatedMiddleware, addNewAuthenticatorCompletion);
 router.get("/getUserAuthenticatorList", isAuthenticatedMiddleware, getUserAuthenticatorList);
+router.delete("/deleteAuthenticator", isAuthenticatedMiddleware, deleteAuthenticator);
 
 module.exports = router;

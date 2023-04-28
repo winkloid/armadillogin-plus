@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const UserModel = require("../models/user.model");
 
 // constant values needed for WebAuthn implementation itself
@@ -396,6 +397,43 @@ const getUserAuthenticatorList = async (req, res) => {
     return res.status(200).send(userAuthenticators);
 }
 
+const deleteAuthenticator = async (req, res) => {
+    if(!req.body.credentialId) {
+        return res.status(400).send("Fehlerhafte Anfrage. Bitte stellen Sie sicher, dass Sie ID Ihres Authenticators in die Anfrage an den Server einbinden.");
+    }
+
+    const mongooseSession = await mongoose.startSession();
+    mongooseSession.startTransaction();
+    try {
+        const userAuthenticators = await WebAuthnAuthenticatorModel.find({
+            userReference: req.session.userId,
+        }).session(mongooseSession);
+
+        if(userAuthenticators.length < 2) {
+            throw {
+                name: "TooFewAuthenticatorsError",
+                message: "Sie haben zurzeit weniger als zwei Authenticators mit Ihrem Benutzerkonto verknüpft. Falls weitere Authenticators aus Ihrem Konto entfernt werden, könnten Sie den Zugang zu Ihrem Benutzerkonto verlieren. Diese Aktion wird daher unterbunden.",
+            };
+        } else {
+            await WebAuthnAuthenticatorModel.deleteMany({
+                userReference: req.session.userId,
+                credentialId: base64url.toBuffer(req.body.credentialId),
+            }).session(mongooseSession);
+            await mongooseSession.commitTransaction();
+            mongooseSession.endSession();
+            return res.status(200).send("Der Authenticator wurde erfolgreich aus Ihrem Benutzerkonto entfernt.");
+        }
+    } catch(authenticatorDeletionError) {
+        await mongooseSession.abortTransaction();
+        mongooseSession.endSession();
+        if(authenticatorDeletionError.name === "TooFewAuthenticatorsError") {
+            return res.status(400).send(authenticatorDeletionError.message);
+        } else {
+            return res.status(500).send("Fehler bei der Kommunikation mit der Datenbank. Der Authenticator konnte nicht gelöscht werden.");
+        }
+    }
+}
+
 /*
 Private helper functions
  */
@@ -468,5 +506,6 @@ module.exports = {
     completeAuthentication,
     addNewAuthenticatorOptions,
     addNewAuthenticatorCompletion,
-    getUserAuthenticatorList
+    getUserAuthenticatorList,
+    deleteAuthenticator
 }
