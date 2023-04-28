@@ -10,7 +10,7 @@ export default function Private () {
     const [accountDeletionSuccess, setAccountDeletionSuccess] = useState(false);
 
 
-    if(isloggedIn) {
+    if(isloggedIn && !accountDeletionTried && !accountDeletionSuccess) {
         return (
             <>
                 <h1 className={"mb-5"}>Willkommen in Ihrem persönlichen Bereich!</h1>
@@ -21,7 +21,7 @@ export default function Private () {
                 <AccountSettings setIsLoggedIn={setIsLoggedIn} setAccountDeletionTried={setAccountDeletionTried} setAccountDeletionSuccess={setAccountDeletionSuccess}/>
             </>
         );
-    } else if(accountDeletionTried && !setAccountDeletionSuccess) {
+    } else if(accountDeletionTried && !accountDeletionSuccess) {
         return(
             <div className={"container"}>
                 <div className="row">
@@ -34,7 +34,7 @@ export default function Private () {
                         </div>
                         <div className={"card-footer"}>
                             <p>Klicken Sie auf die Schaltfläche, um in Ihren persönlichen Benutzerbereich zurückzukehren.</p>
-                            <Link to={"/private"} className={"btn btn-primary"}>Gehe zum Benutzerbereich</Link>
+                            <Link to={"/private"} className={"btn btn-primary"} onClick={() => setAccountDeletionTried(false)}>Gehe zum Benutzerbereich</Link>
                         </div>
                     </div>
                 </div>

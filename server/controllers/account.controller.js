@@ -27,6 +27,12 @@ const deleteUser = async (req, res) => {
     }
 }
 
+const logOutUser = (req, res) => {
+    req.session.destroy();
+    return res.status(200).send("Benutzer wurde erfolgreich ausgeloggt.");
+}
+
 module.exports = {
     deleteUser,
+    logOutUser
 }
