@@ -3,7 +3,7 @@ export default function ErrorComponent({ errorState, errorMessage }) {
     return(
         <>{!(errorState === ErrorState.success) && (
             <div>
-                <p>{errorMessage}</p>
+                <div>{errorMessage}</div>
             </div>)}
         </>
     );

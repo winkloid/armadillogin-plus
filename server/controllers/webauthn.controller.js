@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const UserModel = require("../models/user.model");
 
 // constant values needed for WebAuthn implementation itself
@@ -16,11 +17,14 @@ const {data} = require("express-session/session/cookie");
 
 const maxRetriesOnError = 10;
 
-// PUBLIC
+// @desc    generate registration options, e.g. whether user verification shall be used, type of authenticators, etc.
+// @route   POST /api/webauthn/registrationOptions
+// @access  Public
 const registrationOptions = async (req, res) => {
     if(!req.body.userName) {
         return res.status(400).send("Kein Benutzername angegeben. Bitte geben Sie einen Benutzernamen an.");
     }
+
     const isUserRegistered = await UserModel.findOne({
         userName: req.body.userName
     }).exec().then(async (databaseResponse) => {
@@ -65,6 +69,7 @@ const registrationOptions = async (req, res) => {
                 return res.status(500).send("Internal Server Error: not enough free user Ids available.");
             }
 
+            req.session.isAuthenticated = false;
             req.session.userName = req.body.userName;
             req.session.userId = newlyCreatedUser.content._id;
 
@@ -89,7 +94,7 @@ const registrationOptions = async (req, res) => {
 
 // PUBLIC
 const completeRegistration =  async (req, res) => {
-    if (!req.body) {
+    if (!req.body.registrationResponse) {
         return res.status(400).send("Fehlerhafte Anfrage: Es wurde eine leere Registration-Response übermittelt.");
     }
     const currentChallenge = req.session.currentChallenge;
@@ -97,7 +102,7 @@ const completeRegistration =  async (req, res) => {
     let registrationVerification;
     try {
         registrationVerification = await verifyRegistrationResponse({
-            response: req.body,
+            response: req.body.registrationResponse,
             expectedChallenge: currentChallenge,
             expectedOrigin: origin,
             expectedRPID: rpId,
@@ -138,10 +143,11 @@ const completeRegistration =  async (req, res) => {
                     // Add authenticator to database if the specified user is not already registered
                     const newWebAuthnAuthenticator = await WebAuthnAuthenticatorModel.create({
                         userReference: req.session.userId,
+                        customCredentialName: req.body.authenticatorName,
                         credentialId: Buffer.from(credentialId),
                         credentialPublicKey: Buffer.from(credentialPublicKey),
                         counter: counter,
-                        transports: req.body.response.transports
+                        transports: req.body.registrationResponse.response.transports
                     });
                     return res.status(201).send("Der Benutzer" + req.session.userName + " wurde registriert. \n" + registrationVerified);
                 } catch(error) {
@@ -150,17 +156,6 @@ const completeRegistration =  async (req, res) => {
             }
         }
     } else return res.status(400).send("Fehler beim Auslesen der Informationen aus der Registration-Response des Authenticators.");
-}
-
-// PRIVATE
-async function createNewUser(userName) {
-    return await UserModel.create({
-        userName: userName
-    }).then((databaseResponse) => {
-        return {success: 1, content: databaseResponse};
-    }).catch((error) => {
-        return {success: 0, content: error};
-    })
 }
 
 /*
@@ -205,6 +200,7 @@ const authenticationOptions = async (req, res) => {
         userVerification: "discouraged",
     });
 
+    req.session.isAuthenticated = false;
     req.session.userName = req.body.userName;
     req.session.userId = user._id;
     req.session.currentChallenge = authenticationOptions.challenge;
@@ -266,6 +262,194 @@ const completeAuthentication = async (req, res) => {
     return res.status(200).send("Der Benutzer " + req.session.userName + " wurde erfolgreich authentifiziert.");
 }
 
+const addNewAuthenticatorOptions = async (req, res) => {
+    const userId = req.session.userId;
+    const userName = req.session.userName;
+
+    // Before an authenticator is written with the userId that is stored in the session, check whether the user is still in the system to keep the database consistent
+    const userResponse = await UserModel.findOne({
+        _id: userId,
+        userName: userName,
+        isRegistered: true
+    }).exec().then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((databaseError) => {
+        return {success: 0, databaseError};
+    });
+    if(!userResponse.success) {
+        return res.status(500).send("Interner Serverfehler: Probleme beim Kommunizieren mit der Datenbank:\n" + userResponse.content);
+    }
+    if(userResponse.success && !(userResponse.content)) {
+        return res.status(401).send("Ein registrierter Nutzer wie der von Ihnen angegebene wurde nicht gefunden.");
+    }
+    const user = userResponse.content;
+
+    // retrieve all authenticators that the user registered yet
+    const fetchedAuthenticatorInformation = await fetchAuthenticatorInformation(user);
+    // handle errors in fetched authenticator information
+    if(fetchedAuthenticatorInformation.success === 0) {
+        return res.status(500).send("Interner Server Fehler - Abruf von Authenticator-Informationen aus der Datenbank nicht möglich. \nFehlerbeschreibung:\n" + fetchedAuthenticatorInformation.content);
+    }
+    const userAuthenticators = fetchedAuthenticatorInformation.content;
+
+    const options = generateRegistrationOptions({
+        rpName: rpName,
+        rpID: rpId,
+        userID: userId,
+        userName: userName,
+        attestationType: "none",
+        excludeCredentials: userAuthenticators.map((userAuthenticator) => ({
+            id: Uint8Array.from(userAuthenticator.credentialId),
+            type: 'public-key',
+        })),
+        authenticatorSelection: {
+            userVerification: "discouraged"
+        }
+    });
+    req.session.currentChallenge = options.challenge;
+    return res.status(200).send(options);
+}
+
+const addNewAuthenticatorCompletion = async (req, res) => {
+    if (!req.body.registrationResponse) {
+        return res.status(400).send("Fehlerhafte Anfrage: Es wurde eine leere Registration-Response übermittelt.");
+    }
+
+    let registrationVerification;
+    try {
+        registrationVerification = await verifyRegistrationResponse({
+            response: req.body.registrationResponse,
+            expectedChallenge: req.session.currentChallenge,
+            expectedOrigin: origin,
+            expectedRPID: rpId,
+            requireUserVerification: false
+        });
+    } catch (verificationError) {
+        console.log(verificationError);
+        return res.status(400).send("Fehler beim Verifizieren der Registration-Response: \n" + verificationError.message);
+    }
+
+    const registrationVerified = registrationVerification.verified;
+    const registrationInformation = registrationVerification.registrationInfo;
+
+    if(!(registrationVerified && registrationInformation)) {
+        return res.status(400).send("Fehler beim Auslesen der Informationen aus der Registration-Response des Authenticators.");
+    }
+
+    const credentialPublicKey = registrationInformation.credentialPublicKey;
+    const credentialId = registrationInformation.credentialID;
+    const counter = registrationInformation.counter;
+
+    /*
+    fetch Authenticator and decide whether the specified device is already linked to the user account
+     */
+    const fetchedAuthenticatorById = await fetchAuthenticatorById(req.session.userId, credentialId);
+    // handle errors in fetched authenticator information
+    if(fetchedAuthenticatorById.success === 0) {
+        return res.status(500).send("Interner Server Fehler - Abruf von Authenticator-Informationen aus der Datenbank nicht möglich. \nFehlerbeschreibung:\n" + fetchedAuthenticatorInformation.content);
+    }
+    if(fetchedAuthenticatorById.success === 1 && fetchedAuthenticatorById.content !== null) {
+        return res.status(400).send("Fehlerhafte Anfrage: Der Authenticator ist bereits mit Ihrem Benutzerkonto verknüpft.");
+    }
+
+    try {
+        // Add authenticator to database
+        await WebAuthnAuthenticatorModel.create({
+            userReference: req.session.userId,
+            customCredentialName: req.body.authenticatorName,
+            credentialId: Buffer.from(credentialId),
+            credentialPublicKey: Buffer.from(credentialPublicKey),
+            counter: counter,
+            transports: req.body.registrationResponse.response.transports
+        });
+        return res.status(201).send("Der Authenticator mit dem personalisierten Name" + req.body.authenticatorName + " wurde hinzugefügt. \n" + registrationVerified);
+    } catch(error) {
+        return res.status(500).send("Interner Server Fehler beim Hinzufügen des Authenticators zur Datenbank." + error);
+    }
+}
+
+// @desc    Retrieve all authenticators linked to the specified user account. This function only returns customCredentialName, credentialId and credentialPublicKey of those authentictors
+// @route   GET /api/webauthn/getUserAuthenticatorList
+// @access  Public
+const getUserAuthenticatorList = async (req, res) => {
+    let userAuthenticators = [];
+
+    // retrieve authenticators of current user from database
+    const userAuthenticatorResponse = await WebAuthnAuthenticatorModel.find(
+        {userReference: req.session.userId}
+    ).exec().then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((databaseError) => {
+        return {success: 0, content: databaseError};
+    });
+
+    if(userAuthenticatorResponse.success === 0) {
+        return res.status(500).send("Interner Serverfehler bei der Kommunikation mit der Datenbank zum Abruf der Nutzer-Authenticators.\n" + userAuthenticatorResponse.content);
+    }
+
+    // map the retrieved array of user authenticators so that only credentialId, credentialPublicKey und credentialCustomName are in the response
+    userAuthenticators = userAuthenticatorResponse.content.map((userAuthenticator) => ({
+        customCredentialName: userAuthenticator.customCredentialName,
+        credentialId: base64url(userAuthenticator.credentialId),
+        credentialPublicKey: base64url(userAuthenticator.credentialPublicKey),
+    }));
+
+    return res.status(200).send(userAuthenticators);
+}
+
+const deleteAuthenticator = async (req, res) => {
+    if(!req.body.credentialId) {
+        return res.status(400).send("Fehlerhafte Anfrage. Bitte stellen Sie sicher, dass Sie ID Ihres Authenticators in die Anfrage an den Server einbinden.");
+    }
+
+    const mongooseSession = await mongoose.startSession();
+    mongooseSession.startTransaction();
+    try {
+        const userAuthenticators = await WebAuthnAuthenticatorModel.find({
+            userReference: req.session.userId,
+        }).session(mongooseSession);
+
+        if(userAuthenticators.length < 2) {
+            throw {
+                name: "TooFewAuthenticatorsError",
+                message: "Sie haben zurzeit weniger als zwei Authenticators mit Ihrem Benutzerkonto verknüpft. Falls weitere Authenticators aus Ihrem Konto entfernt werden, könnten Sie den Zugang zu Ihrem Benutzerkonto verlieren. Diese Aktion wird daher unterbunden.",
+            };
+        } else {
+            await WebAuthnAuthenticatorModel.deleteMany({
+                userReference: req.session.userId,
+                credentialId: base64url.toBuffer(req.body.credentialId),
+            }).session(mongooseSession);
+            await mongooseSession.commitTransaction();
+            mongooseSession.endSession();
+            return res.status(200).send("Der Authenticator wurde erfolgreich aus Ihrem Benutzerkonto entfernt.");
+        }
+    } catch(authenticatorDeletionError) {
+        console.log(authenticatorDeletionError);
+        await mongooseSession.abortTransaction();
+        mongooseSession.endSession();
+        if(authenticatorDeletionError.name === "TooFewAuthenticatorsError") {
+            return res.status(400).send(authenticatorDeletionError.message);
+        } else {
+            return res.status(500).send("Fehler bei der Kommunikation mit der Datenbank. Der Authenticator konnte nicht gelöscht werden.");
+        }
+    }
+}
+
+/*
+Private helper functions
+ */
+
+// PRIVATE
+async function createNewUser(userName) {
+    return await UserModel.create({
+        userName: userName
+    }).then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((error) => {
+        return {success: 0, content: error};
+    })
+}
+
 // PRIVATE
 const fetchUserInformation = async (userToFetch) => {
     // fetch user information from database
@@ -279,7 +463,9 @@ const fetchUserInformation = async (userToFetch) => {
     });
 }
 
-// PRIVATE
+// @desc returns an array of authenticators that are currently linked to the account of currentUser
+// @param currentUser: Instance of UserModel for which we want to retrieve all authenticators currently linked to it
+// @access private
 const fetchAuthenticatorInformation = async (currentUser) => {
     return await WebAuthnAuthenticatorModel.find({
         userReference: currentUser._id
@@ -305,8 +491,8 @@ const fetchAuthenticatorById = async (userId, authenticatorId) => {
 // PRIVATE
 const updateAuthenticatorCounter = async (authenticatorId, authenticationInformation) => {
     return await WebAuthnAuthenticatorModel.updateOne({
-        _id: authenticatorId
-    },
+            _id: authenticatorId
+        },
         {$set: {counter: authenticationInformation.newCounter}}).exec().then((databaseResponse) => {
         return {success: 1, content: databaseResponse};
     }).catch((databaseError) => {
@@ -318,5 +504,9 @@ module.exports = {
     registrationOptions,
     completeRegistration,
     authenticationOptions,
-    completeAuthentication
+    completeAuthentication,
+    addNewAuthenticatorOptions,
+    addNewAuthenticatorCompletion,
+    getUserAuthenticatorList,
+    deleteAuthenticator
 }

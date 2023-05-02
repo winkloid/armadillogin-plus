@@ -5,6 +5,7 @@ import {ErrorState} from "../types/errorState.js";
 import ErrorComponent from "../components/ErrorComponent.jsx";
 import terminal from "virtual:terminal";
 import AuthenticationCompletion from "../components/AuthenticationCompletion.jsx";
+import {Navigate} from "react-router-dom";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -14,6 +15,7 @@ axios.defaults.validateStatus = function () {
 };
 
 export default function Login() {
+
     const [userName, setUserName] = useState("");
     const [authenticationOptions, setAuthenticationOptions] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -23,14 +25,14 @@ export default function Login() {
     const [currentError, setCurrentError] = useState("");
 
     const getAuthenticationOptions = async () => {
-        terminal.log(userName);
+        terminal.log("Test: " + import.meta.env.VITE_BACKEND_BASE_URL + 'api/webauthn/authenticationOptions');
         setIsLoading(true);
 
         let optionsResponse;
         try {
             optionsResponse = await axios({
                 method: 'post',
-                url: 'http://localhost:5000/api/webauthn/authenticationOptions',
+                url: import.meta.env.VITE_BACKEND_BASE_URL + '/api/webauthn/authenticationOptions',
                 data: {"userName": userName}
             }).then((response) => {
                 return response;
@@ -98,6 +100,6 @@ export default function Login() {
     } else if(fetchingAuthenticationOptionsSuccess && !completeAuthenticationSuccess) {
         return(<AuthenticationCompletion authenticationOptions = {authenticationOptions} setAuthenticationSuccess = {setCompleteAuthenticationSuccess}/>);
     } else {
-        return(<p>SUCCESS!</p>);
+        return(<Navigate to={"/private"} />);
     }
 }

@@ -15,4 +15,7 @@ export const ErrorState = Object.freeze({
     // Authentication Errors
     authenticationOptionsError: Symbol("AUTHENTICATION_OPTIONS_ERROR"),
     completeAuthenticationError: Symbol("COMPLETE_AUTHENTICATION_ERROR"),
+
+    // Authenticator Deletion Error
+    authenticatorDeletionError: Symbol("AUTHENTICATOR_DELETION_ERROR"),
 });

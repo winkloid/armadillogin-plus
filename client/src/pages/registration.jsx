@@ -6,6 +6,7 @@ import terminal from "virtual:terminal";
 import ErrorComponent from "../components/ErrorComponent.jsx";
 import {ErrorState} from "../types/errorState.js";
 import RegistrationCompletion from "../components/RegistrationCompletion.jsx";
+import {Navigate} from "react-router-dom";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -28,7 +29,7 @@ export default function Registration() {
         try {
             let optionsResponse = await axios({
                 method: 'post',
-                url: 'http://localhost:5000/api/webauthn/registrationOptions',
+                url: import.meta.env.VITE_BACKEND_BASE_URL + '/api/webauthn/registrationOptions',
                 data: {"userName": userName}
             }).then((response) => {
                 return response;
@@ -96,6 +97,6 @@ export default function Registration() {
             <RegistrationCompletion registrationOptions={registrationOptions} setRegistrationSuccess={setCompleteRegistrationSuccess} />
         );
     } else {
-        return(<></>);
+        return(<Navigate to={"/private"} />);
     }
 }
