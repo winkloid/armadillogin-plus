@@ -17,9 +17,7 @@ const getShortcode = async (req, res) => {
             return res.status(500).send("Fewhler beim Erstellen einer neuen Sitzung.");
         }
 
-        console.log(req.session.id);
         const userAgentInfo = parser(req.headers["user-agent"]);
-        console.log(userAgentInfo);
         let verifyingString = emojiStringGenerator();
         let newlyCreatedShortcodeSession = await createNewShortcodeSession(req.session.id, verifyingString, userAgentInfo);
 
@@ -51,7 +49,7 @@ const getShortcodeAuthorizationNotification = async (req, res) => {
         return res.status(400).send("Ihrem Browser ist bisher noch keine Sitzung zugeordnet worden. Bitte wiederholen Sie den Shortcode-Login-Prozess von vorn, um eine Sitzung zu eröffnen.");
     }
 
-    console.log(req.session.id);
+    // check whether the shortcode actually exists in the database and return HTTP404 status if not
     const shortcodeSessionResponse = await ShortcodeSessionModel.findOne({
         sessionId: req.session.id
     }).then((databaseResponse) => {
@@ -63,9 +61,10 @@ const getShortcodeAuthorizationNotification = async (req, res) => {
         return res.status(500).send("Interner Server Fehler: Der Abruf der Shortcode-Sitzung aus der Datenbank ist fehlgeschlagen.");
     }
     if(shortcodeSessionResponse.success && shortcodeSessionResponse.content === null) {
-        return res.status(400).send("Offenbar haben Sie bisher entweder keine Shortcode-Sitzung eröffnet oder diese ist bereits abgelaufen. Bitte wiederholen Sie den Shortcode-Login-Prozess von vorn.");
+        return res.status(404).send("Offenbar haben Sie bisher entweder keine Shortcode-Sitzung eröffnet oder diese ist bereits abgelaufen. Bitte wiederholen Sie den Shortcode-Login-Prozess von vorn.");
     }
 
+    // create watcher in shortcodeSessions collection, always watch for changes of the isAuthorized value of the document that corresponds to the current user; also generate a response on document deletion
     const shortcodeWatchPipeline = [
         {
             $match: {
@@ -90,6 +89,7 @@ const getShortcodeAuthorizationNotification = async (req, res) => {
         return res.status(408).send("Timeout: Sie haben die maximale Zeit für den Login via Shortcode überschritten. Bitte beginnen Sie den Shortcode-Login-Prozess erneut, wenn Sie sich weiterhin via Shortcode einloggen möchten.");
     }, maxTimeUntilTimeoutMS);
 
+    // once the event specified in the pipeline above occurs, handle the change response emitted by it
     watchResult.once("change", (change) => {
         clearTimeout(watchTimeout);
         if(change.operationType === "delete") {
