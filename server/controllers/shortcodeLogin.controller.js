@@ -5,13 +5,14 @@ const parser = require("ua-parser-js");
 const maxRetriesOnError = 10;
 const verifyingEmojiStringLength = 3;
 const maxTimeUntilTimeoutMS = 600000; // 10 minutes
+const numberOfVerifyingChallenges = 4;
 
 /*
 // @desc    generate shortcode. This shortcode can be used to login from another device. Also, this endpoints returns a verifying string and stores userAgent information to the database which can be helpful for users to verify whether they are actually authorizing the right device
 // @route   GET /api/shortcodeLogin/getShortcode
 // @access  Public
  */
-const getShortcode = async (req, res) => {
+const setShortcode = async (req, res) => {
     req.session.regenerate(async function (sessionRegenerationError) {
         if(sessionRegenerationError) {
             return res.status(500).send("Fewhler beim Erstellen einer neuen Sitzung.");
@@ -100,6 +101,49 @@ const getShortcodeAuthorizationNotification = async (req, res) => {
     });
 }
 
+/*
+// @desc    Retrieve the details of a shortcode session, including information about the browser to be authorized, sessionId of the loginSession currently active via this browser and a challenge containing multiple emoji string where only one is the verifying string of the shortcode Session
+// @route   GET /api/shortcodeLogin/getShortcodeSessionInfo
+// @access  Public
+ */
+const getShortcodeSessionInfo = async (req, res) => {
+    if(!req.body.shortcode) {
+        return res.status(400).send("Fehlerhafte Anfrage: Bitte geben Sie einen Shortcode an.");
+    }
+
+    // check whether the shortcode actually exists in the database and return HTTP404 status if not
+    const shortcodeSessionResponse = await ShortcodeSessionModel.findOne({
+        _id: req.body.shortcode
+    }).then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((error) => {
+        return {success: 0, content: error};
+    });
+    console.log(shortcodeSessionResponse)
+    if(!shortcodeSessionResponse.success) {
+        return res.status(500).send("Interner Server-Fehler beim Abrufen der Shortcode-Sitzungsinformationen aus der Datenbank");
+    }
+    if(shortcodeSessionResponse.success && shortcodeSessionResponse.content === null) {
+        return res.status(404).send("Eine Shortcode-Sitzung mit dem angegebenen Shortcode als Identifier wurde nicht gefunden. Bitte stellen Sie sicher, dass Sie den richtigen Shortcode angegebenen haben und dass die dazugehöroge Sitzung noch nicht abgelaufen ist. Jede Sitzung ist nur maximal zehn Minuten aktiv. Beginnen Sie die Shortcode-Login-Prozedur ansonsten von vorn.");
+    }
+
+    // create array of @numberOfVerifyingChallenges challenges and insert the correct challenge at a random index
+    let challengeArray = [];
+    const indexOfCorrectString = Math.round(Math.random() * (numberOfVerifyingChallenges - 1));
+    for(let i = 0; i < numberOfVerifyingChallenges; i++) {
+        if(i === indexOfCorrectString) {
+            challengeArray[i] = shortcodeSessionResponse.content.verifyingString;
+        } else {
+            challengeArray[i] = emojiStringGenerator();
+        }
+    }
+
+    return res.status(200).send({
+        verifyingChallenges: challengeArray,
+        clientInfo: shortcodeSessionResponse.content.userAgentInfo,
+    });
+}
+
 // Private helper functions
 async function createNewShortcodeSession(sessionId, verifyingString, userAgentInfo) {
     return await ShortcodeSessionModel.create({
@@ -124,6 +168,7 @@ function emojiStringGenerator() {
     return verifyingString;
 }
 module.exports = {
-    getShortcode,
-    getShortcodeAuthorizationNotification
+    setShortcode,
+    getShortcodeAuthorizationNotification,
+    getShortcodeSessionInfo
 }
