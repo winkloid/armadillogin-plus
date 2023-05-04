@@ -16,6 +16,7 @@ import Registration from "./pages/registration.jsx";
 import Login from "./pages/login.jsx";
 import Welcome from "./pages/welcome.jsx";
 import Private from "./pages/private.jsx";
+import ShortcodeLogin from "./pages/shortcodeLogin.jsx";
 
 const router = createBrowserRouter([
     {
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
             {
                 path: "private",
                 element: <Private />,
+            },
+            {
+                path: "shortcodeLogin",
+                element: <ShortcodeLogin />
             }
         ]
     },

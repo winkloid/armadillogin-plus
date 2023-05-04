@@ -20,7 +20,9 @@ const generateShortcode = () => {
 const ShortcodeSessionSchema = new Schema({
     _id: {type: String, default: function shortCodeGen() { return generateShortcode(); }},
     sessionId: {type: String},
-    verifyingString: {type: String, default: function generateVerifyingString() {}}
+    verifyingString: {type: String, default: function generateVerifyingString() {}},
+    userAgentInfo: {type: Object},
+    isAuthorized: {type: Boolean},
 });
 
 module.exports = mongoose.model("ShortcodeSessionModel", ShortcodeSessionSchema, "shortcodeSessions");
