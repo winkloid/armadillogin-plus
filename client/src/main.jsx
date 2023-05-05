@@ -17,6 +17,8 @@ import Login from "./pages/login.jsx";
 import Welcome from "./pages/welcome.jsx";
 import Private from "./pages/private.jsx";
 import ShortcodeLogin from "./pages/shortcodeLogin.jsx";
+import AuthorizeShortcode from "./pages/shortcodeLogin/authorizeShortcode.jsx";
+import GenerateShortcode from "./pages/shortcodeLogin/generateShortcode.jsx";
 
 const router = createBrowserRouter([
     {
@@ -42,7 +44,15 @@ const router = createBrowserRouter([
             },
             {
                 path: "shortcodeLogin",
-                element: <ShortcodeLogin />
+                element: <ShortcodeLogin/>
+            },
+            {
+                path: "shortcodeLogin/authorizeShortcode",
+                element: <AuthorizeShortcode />
+            },
+            {
+                path: "shortcodeLogin/generateShortcode",
+                element: <GenerateShortcode />
             }
         ]
     },

@@ -163,13 +163,13 @@ const setShortcodeSessionAuthorized = async (req, res) => {
             _id: req.body.shortcode
         }).session(mongooseSession);
         if(!shortcodeSessionResponse) {
-            mongooseSession.abortTransaction();
-            mongooseSession.endSession();
+            await mongooseSession.abortTransaction();
+            await mongooseSession.endSession();
             return res.status(404).send("Eine Sitzung mit dem angegebenen Shortcode wurde nicht gefunden.");
         }
-        if(shortcodeSessionResponse.content.verifyingString !== req.body.verifyingChallengeResponse) {
-            mongooseSession.abortTransaction();
-            mongooseSession.endSession();
+        if((shortcodeSessionResponse.verifyingString) && shortcodeSessionResponse.verifyingString !== req.body.verifyingChallengeResponse) {
+            await mongooseSession.abortTransaction();
+            await mongooseSession.endSession();
             return res.status(403).send("Das andere Gerät wurde nicht autorisiert, da die von Ihnen angegebene Antwort auf die Verifizierungs-Frage nicht korrekt war.");
         }
 
@@ -190,12 +190,13 @@ const setShortcodeSessionAuthorized = async (req, res) => {
                 isAuthorized: true
             }
         }).session(mongooseSession);
-        mongooseSession.commitTransaction();
-        mongooseSession.endSession();
+        await mongooseSession.commitTransaction();
+        await mongooseSession.endSession();
         return res.status(200).send("Die Sitzung auf dem anderen Gerät wurde erfolgreich autorisiert.");
     } catch(error) {
-        mongooseSession.abortTransaction();
-        mongooseSession.endSession();
+        await mongooseSession.abortTransaction();
+        await mongooseSession.endSession();
+        console.log(error);
         return res.status(500).send("Es ist ein interner Serverfehler beim Autorisierung der Sitzung auf dem anderen Gerät aufgetreten.");
     }
 }
