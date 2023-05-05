@@ -1,10 +1,13 @@
 const express = require("express");
-const {setShortcode, getShortcodeAuthorizationNotification, getShortcodeSessionInfo} = require("../controllers/shortcodeLogin.controller");
+const {setShortcode, getShortcodeAuthorizationNotification, getShortcodeSessionInfo, setShortcodeSessionAuthorized} = require("../controllers/shortcodeLogin.controller");
+const {isAuthenticatedMiddleware} = require("../middleware/isAuthenticatedMiddleware");
 const router = express.Router();
 
-// Authentication needed
-router.post("/setShortcode", setShortcode);
+router.get("/setShortcode", setShortcode);
 router.get("/getShortcodeAuthorizationNotification", getShortcodeAuthorizationNotification);
-router.get("/getShortcodeSessionInfo", getShortcodeSessionInfo);
+
+// Authentication needed
+router.get("/getShortcodeSessionInfo", isAuthenticatedMiddleware, getShortcodeSessionInfo);
+router.post("/setShortcodeSessionAuthorized", isAuthenticatedMiddleware, setShortcodeSessionAuthorized);
 
 module.exports = router;

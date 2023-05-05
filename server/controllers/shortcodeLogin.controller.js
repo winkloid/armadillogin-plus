@@ -1,6 +1,8 @@
 const ShortcodeSessionModel = require("../models/shortcodeSession.model");
+const LoginSessionModel = require("../models/loginSession.model");
 const emoji = require("emoji-dictionary");
 const parser = require("ua-parser-js");
+const mongoose = require("mongoose");
 
 const maxRetriesOnError = 10;
 const verifyingEmojiStringLength = 3;
@@ -9,7 +11,7 @@ const numberOfVerifyingChallenges = 4;
 
 /*
 // @desc    generate shortcode. This shortcode can be used to login from another device. Also, this endpoints returns a verifying string and stores userAgent information to the database which can be helpful for users to verify whether they are actually authorizing the right device
-// @route   GET /api/shortcodeLogin/getShortcode
+// @route   POST /api/shortcodeLogin/setShortcode
 // @access  Public
  */
 const setShortcode = async (req, res) => {
@@ -144,6 +146,60 @@ const getShortcodeSessionInfo = async (req, res) => {
     });
 }
 
+/*
+// @desc    Send the verifying string challenge response back to this endpoint; this endpoint checks whether the response actually equals the verifying string set before and if so, copies the session information of the authenticated loginSession to the loginSession of the browser that needs to be authorized and notifies this browser by setting the isAuthorized value inside the corresponding shortcodeSession document to true
+// @route   POST /api/shortcodeLogin/setShortcodeSessionAuthorized
+// @access  Public
+ */
+const setShortcodeSessionAuthorized = async (req, res) => {
+    if(!req.body.verifyingChallengeResponse || !req.body.shortcode) {
+        return res.status(400).send("Fehlerhafte Anfrage: Bitte geben Sie die korrekte Zeichenkette zum verifizieren der Geräte-Autorisierung an.");
+    }
+
+    const mongooseSession = await mongoose.startSession();
+    mongooseSession.startTransaction();
+    try {
+        const shortcodeSessionResponse = await ShortcodeSessionModel.findOne({
+            _id: req.body.shortcode
+        }).session(mongooseSession);
+        if(!shortcodeSessionResponse) {
+            mongooseSession.abortTransaction();
+            mongooseSession.endSession();
+            return res.status(404).send("Eine Sitzung mit dem angegebenen Shortcode wurde nicht gefunden.");
+        }
+        if(shortcodeSessionResponse.content.verifyingString !== req.body.verifyingChallengeResponse) {
+            mongooseSession.abortTransaction();
+            mongooseSession.endSession();
+            return res.status(403).send("Das andere Gerät wurde nicht autorisiert, da die von Ihnen angegebene Antwort auf die Verifizierungs-Frage nicht korrekt war.");
+        }
+
+        await LoginSessionModel.updateOne({
+            _id: shortcodeSessionResponse.sessionId
+        }, {
+            $set: {
+                "session.isAuthenticated": true,
+                "session.userName": req.session.userName,
+                "session.userId": req.session.userId
+            }
+        }).session(mongooseSession);
+
+        await ShortcodeSessionModel.updateOne({
+            _id: req.body.shortcode
+        }, {
+            $set: {
+                isAuthorized: true
+            }
+        }).session(mongooseSession);
+        mongooseSession.commitTransaction();
+        mongooseSession.endSession();
+        return res.status(200).send("Die Sitzung auf dem anderen Gerät wurde erfolgreich autorisiert.");
+    } catch(error) {
+        mongooseSession.abortTransaction();
+        mongooseSession.endSession();
+        return res.status(500).send("Es ist ein interner Serverfehler beim Autorisierung der Sitzung auf dem anderen Gerät aufgetreten.");
+    }
+}
+
 // Private helper functions
 async function createNewShortcodeSession(sessionId, verifyingString, userAgentInfo) {
     return await ShortcodeSessionModel.create({
@@ -170,5 +226,6 @@ function emojiStringGenerator() {
 module.exports = {
     setShortcode,
     getShortcodeAuthorizationNotification,
-    getShortcodeSessionInfo
+    getShortcodeSessionInfo,
+    setShortcodeSessionAuthorized
 }
