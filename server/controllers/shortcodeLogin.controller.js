@@ -37,7 +37,7 @@ const setShortcode = async (req, res) => {
 
         return res.status(201).send({
             shortcode: newlyCreatedShortcodeSession.content._id,
-            verifyingString: newlyCreatedShortcodeSession.content.verifyingString
+            verifyingString: newlyCreatedShortcodeSession.content.verifyingString,
         });
     });
 }
@@ -49,7 +49,7 @@ const setShortcode = async (req, res) => {
  */
 const getShortcodeAuthorizationNotification = async (req, res) => {
     if(!req.session.id) {
-        return res.status(400).send("Ihrem Browser ist bisher noch keine Sitzung zugeordnet worden. Bitte wiederholen Sie den Shortcode-Login-Prozess von vorn, um eine Sitzung zu eröffnen.");
+        return res.status(400).set('Cache-Control', 'no-store').send("Ihrem Browser ist bisher noch keine Sitzung zugeordnet worden. Bitte wiederholen Sie den Shortcode-Login-Prozess von vorn, um eine Sitzung zu eröffnen.");
     }
 
     // check whether the shortcode actually exists in the database and return HTTP404 status if not
@@ -61,10 +61,10 @@ const getShortcodeAuthorizationNotification = async (req, res) => {
         return {success: 0, content: error};
     });
     if(!shortcodeSessionResponse.success) {
-        return res.status(500).send("Interner Server Fehler: Der Abruf der Shortcode-Sitzung aus der Datenbank ist fehlgeschlagen.");
+        return res.status(500).set('Cache-Control', 'no-store').send("Interner Server Fehler: Der Abruf der Shortcode-Sitzung aus der Datenbank ist fehlgeschlagen.");
     }
     if(shortcodeSessionResponse.success && shortcodeSessionResponse.content === null) {
-        return res.status(404).send("Offenbar haben Sie bisher entweder keine Shortcode-Sitzung eröffnet oder diese ist bereits abgelaufen. Bitte wiederholen Sie den Shortcode-Login-Prozess von vorn.");
+        return res.status(404).set('Cache-Control', 'no-store').send("Offenbar haben Sie bisher entweder keine Shortcode-Sitzung eröffnet oder diese ist bereits abgelaufen. Bitte wiederholen Sie den Shortcode-Login-Prozess von vorn.");
     }
 
     // create watcher in shortcodeSessions collection, always watch for changes of the isAuthorized value of the document that corresponds to the current user; also generate a response on document deletion
@@ -89,16 +89,16 @@ const getShortcodeAuthorizationNotification = async (req, res) => {
     // after at most @maxTimeUntilTimeout Minutes the shortcode notification session times out - if there was no answer before that, the user will get a timeout message
     const watchTimeout = setTimeout(async () => {
         await watchResult.close();
-        return res.status(408).send("Timeout: Sie haben die maximale Zeit für den Login via Shortcode überschritten. Bitte beginnen Sie den Shortcode-Login-Prozess erneut, wenn Sie sich weiterhin via Shortcode einloggen möchten.");
+        return res.status(408).set('Cache-Control', 'no-store').send("Timeout: Sie haben die maximale Zeit für den Login via Shortcode überschritten. Bitte beginnen Sie den Shortcode-Login-Prozess erneut, wenn Sie sich weiterhin via Shortcode einloggen möchten.");
     }, maxTimeUntilTimeoutMS);
 
     // once the event specified in the pipeline above occurs, handle the change response emitted by it
     watchResult.once("change", (change) => {
         clearTimeout(watchTimeout);
         if(change.operationType === "delete") {
-            return res.status(410).send("Die Shortcode-Login-Sitzung wurde inzwischen beendet. Wahrscheinlich haben Sie die maximale Zeit für den Login via Shortcode überschritten.");
+            return res.status(410).set('Cache-Control', 'no-store').send("Die Shortcode-Login-Sitzung wurde inzwischen beendet. Wahrscheinlich haben Sie die maximale Zeit für den Login via Shortcode überschritten.");
         } else {
-            return res.status(200).send("Erfolgreich autorisiert.");
+            return res.status(200).set('Cache-Control', 'no-store').send("Erfolgreich autorisiert.");
         }
     });
 }
@@ -208,6 +208,7 @@ async function createNewShortcodeSession(sessionId, verifyingString, userAgentIn
         verifyingString: verifyingString,
         userAgentInfo: userAgentInfo,
         isAuthorized: false,
+        createdAt: Date.now()
     }).then((databaseResponse) => {
         return {success: 1, content: databaseResponse};
     }).catch((error) => {

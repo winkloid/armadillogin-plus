@@ -18,7 +18,7 @@ export default function ShortcodeLogin() {
                     <div className={"card-body"}>
                         <h2 className={"card-title"}>Zur Autorisierung</h2>
                         <p className={"card-text"}>Wenn Sie bereits einen Code auf einem anderen Gerät/in einem anderen Browser generieren lassen haben, können Sie den Kontozugriff über dieses Gerät/diesen Browser hier autorisieren. Um sicherzustellen, dass Sie dazu tatsächlich berechtigt sind, durchlaufen Sie zuvor den Login-Prozess in Ihr Benutzerkonto mittels WebAuthn/FIDO2. Halten Sie also Ihren WebAuthn/FIDO2-Authenticator bereit!</p>
-                        <Link to={"/shortcodeLogin/authorizeShortcode"} className="btn btn-primary">Klicken Sie hier</Link>
+                        <Link to={"/shortcode"} className="btn btn-primary">Klicken Sie hier</Link>
                     </div>
                 </div>
             </div>

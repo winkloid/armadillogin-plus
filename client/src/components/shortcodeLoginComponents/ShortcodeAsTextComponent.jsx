@@ -9,9 +9,9 @@ export default function ShortcodeAsTextComponent({shortcodeInformation}) {
             </div>
             <div className={"card-footer "}>
                 <p className={"m-0"}>Besuchen Sie auf einem anderen Gerät die Seite </p>
-                <code className={"fw-bold"}>{import.meta.env.VITE_FRONTEND_BASE_URL}/shortcodeLogin/authorizeShortcode/{shortcodeInformation.shortcode}</code>
+                <code className={"fw-bold"}>{import.meta.env.VITE_FRONTEND_BASE_URL}/shortcode/{shortcodeInformation.shortcode}</code>
                 <p className={"m-0"}><span className={"m-0 fst-italic fw-bold"}>oder</span> besuchen Sie </p>
-                <p className={"m-0"}><code className={"fw-bold"}>{import.meta.env.VITE_FRONTEND_BASE_URL}/shortcodeLogin/</code>,</p>
+                <p className={"m-0"}><code className={"fw-bold"}>{import.meta.env.VITE_FRONTEND_BASE_URL}/shortcode/</code>,</p>
                 <p className={"m"}>um den Code dort einzugeben.</p>
                 <p>Dann können Sie diese Sitzung dort autorisieren.</p>
             </div>

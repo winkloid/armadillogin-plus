@@ -19,7 +19,7 @@ const generateShortcode = () => {
 
 const ShortcodeSessionSchema = new Schema({
     _id: {type: String, default: function shortCodeGen() { return generateShortcode(); }},
-    expires: {type: Date, default: new Date().getTime() + 10 * 60000, expires: 1},
+    createdAt: {type: Date, expires: 600},
     sessionId: {type: String},
     verifyingString: {type: String, default: function generateVerifyingString() {}},
     userAgentInfo: {type: Object},

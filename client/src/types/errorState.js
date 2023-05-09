@@ -7,6 +7,7 @@ export const ErrorState = Object.freeze({
     notFoundError: Symbol("NOT_FOUND_ERROR"),
     serverError: Symbol("SERVER_ERROR"),
     badRequestError: Symbol("BAD_REQUEST_ERROR"),
+    timeoutError: Symbol("TIMEOUT_ERROR"),
     authenticatorCommunicationError: Symbol("AUTHENTICATOR_COMMUNICATION_ERROR"),
 
     // Registration errors
