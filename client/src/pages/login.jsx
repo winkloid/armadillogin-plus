@@ -104,7 +104,7 @@ export default function Login() {
     } else {
         if(state) {
             if(state.isShortcodeLogin) {
-                return (<Navigate to={"/shortcodeLogin/authorizeShortcode"} state={{shortcode: state.shortcode}}/>);
+                return (<Navigate to={"/shortcodeLogin/authorize"} state={{shortcode: state.shortcode}}/>);
             } else {
                 return(<Navigate to={"/private"} />);
             }

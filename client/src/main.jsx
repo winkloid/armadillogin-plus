@@ -60,7 +60,7 @@ const router = createBrowserRouter([
                 element: <ShortcodeInput />
             },
             {
-                path: "shortcodeLogin/authorizeShortcode",
+                path: "shortcodeLogin/authorize",
                 element: <AuthorizeShortcodeSession />
             }
         ]

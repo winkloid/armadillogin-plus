@@ -121,7 +121,7 @@ const getShortcodeSessionInfo = async (req, res) => {
     }).catch((error) => {
         return {success: 0, content: error};
     });
-    console.log(shortcodeSessionResponse)
+
     if(!shortcodeSessionResponse.success) {
         return res.status(500).send("Interner Server-Fehler beim Abrufen der Shortcode-Sitzungsinformationen aus der Datenbank");
     }

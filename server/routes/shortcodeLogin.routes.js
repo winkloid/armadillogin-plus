@@ -7,7 +7,7 @@ router.get("/setShortcode", setShortcode);
 router.get("/getShortcodeAuthorizationNotification", getShortcodeAuthorizationNotification);
 
 // Authentication needed
-router.get("/getShortcodeSessionInfo", isAuthenticatedMiddleware, getShortcodeSessionInfo);
+router.post("/getShortcodeSessionInfo", isAuthenticatedMiddleware, getShortcodeSessionInfo);
 router.post("/setShortcodeSessionAuthorized", isAuthenticatedMiddleware, setShortcodeSessionAuthorized);
 
 module.exports = router;
