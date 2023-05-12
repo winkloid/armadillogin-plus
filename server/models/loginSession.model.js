@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const LoginSessionSchema = new Schema({
+    _id: {type: String},
     expires: {type: Date},
     session: {
         isAuthenticated: {type: Boolean},

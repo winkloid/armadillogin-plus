@@ -447,7 +447,7 @@ async function createNewUser(userName) {
         return {success: 1, content: databaseResponse};
     }).catch((error) => {
         return {success: 0, content: error};
-    })
+    });
 }
 
 // PRIVATE

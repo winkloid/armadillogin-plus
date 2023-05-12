@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const webauthn = require("./routes/webauthn.routes");
 const account = require("./routes/account.routes");
+const shortcodeLogin = require("./routes/shortcodeLogin.routes");
 
 const app = express();
 const port = 5000;
@@ -49,7 +50,8 @@ app.use(session({
 }));
 
 app.use("/api/webauthn", webauthn);
-app.use("/api/account", account)
+app.use("/api/account", account);
+app.use("/api/shortcodeLogin", shortcodeLogin);
 
 app.listen(port, () => {
     console.log("Express-Server gestartet: localhost:" + port);

@@ -1,7 +1,7 @@
 const UserModel = require("../models/user.model");
 const LoginSessionModel = require("../models/loginSession.model");
 const WebAuthnAuthenticatorModel = require("../models/webauthn_authenticator.model")
-const mongoose = require("mongoose");
+const mongoose= require("mongoose");
 
 const deleteUser = async (req, res) => {
     const mongooseSession = await mongoose.startSession();

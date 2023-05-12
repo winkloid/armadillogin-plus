@@ -5,7 +5,7 @@ import {ErrorState} from "../types/errorState.js";
 import ErrorComponent from "../components/ErrorComponent.jsx";
 import terminal from "virtual:terminal";
 import AuthenticationCompletion from "../components/AuthenticationCompletion.jsx";
-import {Navigate} from "react-router-dom";
+import {Navigate, useLocation} from "react-router-dom";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -15,6 +15,7 @@ axios.defaults.validateStatus = function () {
 };
 
 export default function Login() {
+    const { state } = useLocation();
 
     const [userName, setUserName] = useState("");
     const [authenticationOptions, setAuthenticationOptions] = useState({});
@@ -25,7 +26,6 @@ export default function Login() {
     const [currentError, setCurrentError] = useState("");
 
     const getAuthenticationOptions = async () => {
-        terminal.log("Test: " + import.meta.env.VITE_BACKEND_BASE_URL + 'api/webauthn/authenticationOptions');
         setIsLoading(true);
 
         let optionsResponse;
@@ -81,7 +81,8 @@ export default function Login() {
                                type={"text"}
                                disabled={isLoading}
                                className={"form-control"} placeholder={"Benutzername"}
-                               aria-label={"Benutzername"} aria-describedby={"userName-addon"}/>
+                               aria-label={"Benutzername"} aria-describedby={"userName-addon"}
+                        />
                     </div>
                 </form>
 
@@ -100,6 +101,14 @@ export default function Login() {
     } else if(fetchingAuthenticationOptionsSuccess && !completeAuthenticationSuccess) {
         return(<AuthenticationCompletion authenticationOptions = {authenticationOptions} setAuthenticationSuccess = {setCompleteAuthenticationSuccess}/>);
     } else {
-        return(<Navigate to={"/private"} />);
+        if(state) {
+            if(state.isShortcodeLogin) {
+                return (<Navigate to={"/shortcodeLogin/authorize"} state={{shortcode: state.shortcode}}/>);
+            } else {
+                return(<Navigate to={"/private"} />);
+            }
+        } else {
+            return(<Navigate to={"/private"} />);
+        }
     }
 }
