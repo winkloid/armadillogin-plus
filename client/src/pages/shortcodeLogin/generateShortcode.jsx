@@ -4,6 +4,7 @@ import {ErrorState} from "../../types/errorState.js";
 import ShortcodeAsTextComponent from "../../components/shortcodeLoginComponents/ShortcodeAsTextComponent.jsx";
 import terminal from "virtual:terminal";
 import {Navigate} from "react-router-dom";
+import ShortcodeAsQrComponent from "../../components/shortcodeLoginComponents/ShortcodeAsQrComponent.jsx";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -110,7 +111,8 @@ export default function GenerateShortcode () {
                             }
                             {(shortcodeInformation !== null) &&
                                 <div>
-                                    <div className={"row"}>
+                                    <div className={"row mx-1"}>
+                                        <ShortcodeAsQrComponent shortcodeInformation={shortcodeInformation}/>
                                         <ShortcodeAsTextComponent shortcodeInformation={shortcodeInformation}/>
                                     </div>
                                 </div>
@@ -130,14 +132,14 @@ export default function GenerateShortcode () {
                                     "paddingTop": "1rem",
                                     "letterSpacing": "1rem"
                                 }}>{shortcodeInformation.verifyingString}</span></div>
-                                <div className={"card m-0 border-info card-body"}>
+                                <div className={"card m-0 mx-1 border-info card-body"}>
                                     <span className={"visually-hidden"}>Information zur Bestätigung der Autorisierung mittels Zeichenkette</span>
                                     <p className={"m-0 p-0 "}>Um sicherzustellen, dass Sie nicht versehentlich (z.B.
                                         aufgrund eines Tippfehlers bei der Codeeingabe) ein falsches Gerät für den
                                         Zugriff auf Ihr Benutzerkonto autorisieren, werden Sie während der Autorisierung
                                         nach einer Zeichenkette gefragt. Nur, wenn Sie diejenige wählen, die hier angezeigt wird, wird die Autorisierung akzeptiert.</p>
                                 </div>
-                                <div className={"card mt-3 border-primary p-3"}>
+                                <div className={"card mt-3 mx-1 border-primary p-3"}>
                                     <div className={"card-body d-flex justify-content-center"}>
                                         <div className="spinner-border text-primary" role="status">
                                             <span className="visually-hidden">Warte auf Autorisierung dieses Geräts mithilfe des Shortcodes...</span>
@@ -147,7 +149,7 @@ export default function GenerateShortcode () {
                                         Autorisierung...</p>
                                     <p className={"text-primary m-0"}>Verwenden Sie den angezeigten Text-Code oder den
                                         QR-Code wie beschrieben, um diese Sitzung über ein anderes Gerät zu
-                                        autorisieren. Sie werden anschließend hier automatisch eingeloggt.</p>
+                                        autorisieren. <strong>Sie werden anschließend hier automatisch eingeloggt.</strong></p>
                                 </div>
                             </div>
                         }
