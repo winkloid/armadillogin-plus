@@ -26,7 +26,6 @@ export default function Login() {
     const [currentError, setCurrentError] = useState("");
 
     const getAuthenticationOptions = async () => {
-        terminal.log("Test: " + import.meta.env.VITE_BACKEND_BASE_URL + 'api/webauthn/authenticationOptions');
         setIsLoading(true);
 
         let optionsResponse;

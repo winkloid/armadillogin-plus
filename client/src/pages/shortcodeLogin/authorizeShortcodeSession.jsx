@@ -5,6 +5,8 @@ import {ErrorState} from "../../types/errorState.js";
 import terminal from "virtual:terminal";
 import SessionInformationDisplayComponent
     from "../../components/shortcodeLoginComponents/SessionInformationDisplayComponent.jsx";
+import VerifyingChallengeSelectionComponent
+    from "../../components/shortcodeLoginComponents/VerifyingChallengeSelectionComponent.jsx";
 
 export default function AuthorizeShortcodeSession() {
     const { state } = useLocation();
@@ -14,10 +16,14 @@ export default function AuthorizeShortcodeSession() {
     const [errorState, setErrorState] = useState(ErrorState.success);
     const [sessionInformation, setSessionInformation] = useState(null);
     const [currentShortcode, setCurrentShortcode] = useState((state.shortcode) ? state.shortcode : "");
+    const [lastConfirmedShortcode, setLastConfirmedShortcode] = useState((state.shortcode) ? state.shortcode : "");
+    const [shortcodeEditActive, setShortcodeEditActive] = useState(false);
+
+    const [currentlySelectedChallengeResponse, setCurrentlySelectedChallengeResponse] = useState(null);
 
     const [sessionNotFound, setSessionNotFound] = useState(false);
-
-    const [currentServerResponse, setCurrentServerResponse] = useState(null);
+    const [challengeResponseIncorrect, setChallengeResponseIncorrect] = useState(false);
+    const [authorizationAttempted, setAuthorizationAttempted] = useState(false);
 
     useEffect(() => {
         if(state && state.shortcode) {
@@ -27,6 +33,7 @@ export default function AuthorizeShortcodeSession() {
 
     const fetchShortcodeSessionInformation = async () => {
         setIsLoading(true);
+        setLastConfirmedShortcode(currentShortcode);
         try {
             const sessionInformationResponse = await axios({
                 method: "post",
@@ -63,15 +70,45 @@ export default function AuthorizeShortcodeSession() {
         }
     }
     const handleShortcodeSessionAuthorization = async () => {
-        let authorizationResponse = axios({
-            method: "post",
-            url: "http://localhost:5000/api/shortcodeLogin/setShortcodeSessionAuthorized",
-            data: {
-                shortcode: "dvu656",
-                verifyingChallengeResponse: "🚶🆎↗️"
+        try {
+            setIsLoading(true);
+            let authorizationResponse = await axios({
+                method: "post",
+                url: import.meta.env.VITE_BACKEND_BASE_URL + "/api/shortcodeLogin/setShortcodeSessionAuthorized",
+                data: {
+                    shortcode: lastConfirmedShortcode,
+                    verifyingChallengeResponse: currentlySelectedChallengeResponse
+                }
+            });
+
+            if(authorizationResponse.status === 200) {
+                setCurrentError("");
+                setErrorState(ErrorState.success);
+                setSessionNotFound(false);
+                setChallengeResponseIncorrect(false);
+            } else {
+                setCurrentError("Server meldet: " + authorizationResponse.data);
+                if (authorizationResponse.status === 401) {
+                    setErrorState(ErrorState.notAuthorizedError);
+                } else if (authorizationResponse.status === 400) {
+                    setErrorState(ErrorState.badRequestError);
+                } else if (authorizationResponse.status === 500) {
+                    setErrorState(ErrorState.serverError);
+                } else if (authorizationResponse.status === 404) {
+                    setSessionNotFound(true);
+                } else if(authorizationResponse.status === 403) {
+                    setChallengeResponseIncorrect(true);
+                } else {
+                    setErrorState(ErrorState.connectionError);
+                }
             }
-        });
-        setCurrentServerResponse(authorizationResponse.data);
+        } catch(error) {
+            setCurrentError("Verbindungsfehler! Bitte prüfen Sie Ihre Internetverbindung!\n" + error);
+            setErrorState(ErrorState.connectionError);
+        } finally {
+            setAuthorizationAttempted(true);
+            setIsLoading(false);
+        }
     }
 
     if(!state) {
@@ -102,10 +139,10 @@ export default function AuthorizeShortcodeSession() {
                 return(
                     <div className="card p-0 mb-3">
                         <div className="card-header bg-danger text-white">
-                            <h1 className={"display-5 m-0 p-0"}>Shortcode-Sitzung mit dem Code {state.shortcode} nicht gefunden.</h1>
+                            <h1 className={"display-5 m-0 p-0"}>Shortcode-Sitzung mit dem Code {lastConfirmedShortcode} nicht gefunden.</h1>
                         </div>
                         <div className={"card-body"}>
-                            <p>Eine Sitzung mit dem von Ihnen angegebenen Sitzungs-Code <code>{state.shortcode}</code> konnte nicht gefunden werden. Bitte generieren Sie entweder einen neuen Shortcode auf dem zu autorisierenden Gerät und tragen Sie ihn in das untenstehende Eingabefeld ein oder überprüfen Sie den bereits angegebenen Code auf Tippfehler. Bestätigen Sie die Eingabe anschließend mit "Bestätigen".</p>
+                            <p>Eine Sitzung mit dem von Ihnen angegebenen Sitzungs-Code <code>{lastConfirmedShortcode}</code> konnte nicht gefunden werden. Bitte generieren Sie entweder einen neuen Shortcode auf dem zu autorisierenden Gerät und tragen Sie ihn in das untenstehende Eingabefeld ein oder überprüfen Sie den bereits angegebenen Code auf Tippfehler. Bestätigen Sie die Eingabe anschließend mit "Bestätigen".</p>
                             <div className="input-group mb-3">
                                 <span className="input-group-text">🔡</span>
                                 <div className="form-floating">
@@ -125,6 +162,45 @@ export default function AuthorizeShortcodeSession() {
                         </div>
                     </div>
                 );
+            } else if(authorizationAttempted) {
+                if(challengeResponseIncorrect) {
+                    return(
+                        <div className={"card p-0 bg-danger text-white"}>
+                            <div className={"card-header"}>
+                                <h1 className={"mx-1 display-5"}>Autorisierung fehlgeschlagen</h1>
+                            </div>
+                            <div className={"card-body"}>
+                                <p className={"mx-1"}>Leider war die ausgewählte Zeichenkette nicht korrekt. Das zu autorisierende Gerät wurde daher nicht autorisiert. Bitte überprüfen Sie den angegebenen Sitzungscode und die Zeichenkette, die zum Bestätigen der Autorisierung erforderlich ist und versuchen Sie es erneut.</p>
+                            </div>
+                            <div className={"card-footer"}>
+                                <div className={"row mx-1"}>
+                                    <button className={"btn btn-primary col me-1"} type={"button"} onClick={() => {
+                                        setAuthorizationAttempted(false);
+                                        setChallengeResponseIncorrect(false);
+                                    }}>Navigiere zurück zur Geräte-Autorisierungsseite</button>
+                                    <Link className={"btn btn-secondary col ms-1"} to={"/"}>Breche Geräte-Autorisierung ab und kehre zur Startseite zurück</Link>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                } else {
+                    return(
+                        <div className={"card p-0 bg-success text-white"}>
+                            <div className={"card-header"}>
+                                <h1 className={"mx-1 display-5"}>Autorisierung erfolgreich!</h1>
+                            </div>
+                            <div className={"card-body"}>
+                                <p className={"mx-1"}>Sie haben die richtige Zeichenkette ausgewählt und damit die Autorisierung des Geräts mit dem Sitzungscode {lastConfirmedShortcode} erfolgreich bestätigt.</p>
+                            </div>
+                            <div className={"card-footer"}>
+                                <div className={"row mx-1"}>
+                                    <Link className={"btn btn-primary col me-1"} to={"/private"}>Navigiere in meinen Privatbereich</Link>
+                                    <Link className={"btn btn-secondary col ms-1"} to={"/"}>Kehre zur Startseite zurück</Link>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
             } else {
                 return (
                     <div className="card p-0 mb-3">
@@ -133,7 +209,40 @@ export default function AuthorizeShortcodeSession() {
                         </div>
                         <div className={"card-body"}>
                             <h2 className={"display-6 mx-1"}>Geräte-Informationen des zu autorisierenden Geräts</h2>
-                            <p className={"mx-1"}>Sie sind im Begriff, ein Gerät zu autorisieren, das folgende
+                            {!shortcodeEditActive &&
+                                <div>
+                                    <p className={"mx-1"}>Sie haben folgenden Sitzungs-Code eingegeben: </p>
+                                    <div className={"row mx-1 d-inline-flex"}>
+                                        <kbd className={"font-monospace fs-1 col"}>{currentShortcode}</kbd>
+                                        <button className={"btn btn-primary col mx-2 fw-semibold"} type={"button"} onClick={() => setShortcodeEditActive(true)}>Bearbeite Shortcode</button>
+                                    </div>
+                                </div>
+                            }
+                            {shortcodeEditActive &&
+                                <div className={"mx-1"}>
+                                    <p>Hier können Sie Ihren Sitzungscode bei Bedarf bearbeiten - aktuell lautet ihr Sitzungs-Code <code>{lastConfirmedShortcode}</code></p>
+                                    <div className="input-group mb-3">
+                                        <span className="input-group-text">🔡</span>
+                                        <div className="form-floating">
+                                            <input type="text"
+                                                   className="form-control"
+                                                   id="shortcodeInput"
+                                                   value={currentShortcode}
+                                                   onChange={shortcodeInputChange => setCurrentShortcode(shortcodeInputChange.target.value)}
+                                                   placeholder={"Login-Code"}
+                                                   aria-label={"Code Ihrer Kurzcode-Sitzung"}/>
+                                            <label htmlFor="shortcodeInput">Login-Code</label>
+                                        </div>
+                                        <button type={"button"} className={"btn btn-primary"} onClick={() => {
+                                            setShortcodeEditActive(false);
+                                            fetchShortcodeSessionInformation();
+                                        }}>
+                                            Bestätigen
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            <p className={"mx-1 mt-3"}>Sie sind demnach im Begriff, ein Gerät zu autorisieren, das folgende
                                 Informationen
                                 zusammen mit seiner Autorisierungs-Anfrage gesendet hat.</p>
                             <div className={"alert alert-danger mx-1"}>
@@ -153,13 +262,24 @@ export default function AuthorizeShortcodeSession() {
                                 <SessionInformationDisplayComponent sessionInformation={sessionInformation}/>
                             }
                             {!sessionInformation?.clientInfo &&
-                                <div className={"alert alert-secondary"}>
+                                <div className={"mx-1 alert alert-secondary"}>
                                     <p>Es scheinen keine Informationen über das zu autorisierende Gerät vorzuliegen oder
                                         die
                                         Informationen konnten nicht geladen werden.</p>
                                 </div>
                             }
                         </div>
+                        {sessionInformation?.verifyingChallenges &&
+                            <div className={"card-footer"}>
+                                <h2 className={"display-6 mx-1"}>Auswahl der richtigen Zeichenkette</h2>
+                                <p className={"mx-1"}>Auf der Seite zur Generierung eines neuen Sitzungs-Codes wurde Ihnen eine Zeichenkette angezeigt. Wählen Sie hier die richtige aus.</p>
+                                <p className={"mx-1 fw-semibold"}>Sie erkennen keine der Zeichenketten wieder? Überprüfen Sie den eingegebenen Sitzungs-Code erneut. Möglicherweise haben Sie sich vertippt! Sie können den Code oben auf dieser Seite bearbeiten.</p>
+                                <VerifyingChallengeSelectionComponent sessionInformation={sessionInformation} currentlySelectedChallengeResponse={currentlySelectedChallengeResponse} setCurrentlySelectedChallengeResponse={setCurrentlySelectedChallengeResponse}/>
+                                <div className={"row mx-1"}>
+                                    <button className={"btn btn-primary col"} type={"button"} onClick={handleShortcodeSessionAuthorization} disabled={isLoading}>Bestätige die Auswahl und autorisiere das Gerät mit dem Sitzungscode <strong>{lastConfirmedShortcode}</strong></button>
+                                </div>
+                            </div>
+                        }
                     </div>
                 );
             }
