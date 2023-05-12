@@ -276,7 +276,30 @@ export default function AuthorizeShortcodeSession() {
                                 <p className={"mx-1 fw-semibold"}>Sie erkennen keine der Zeichenketten wieder? Überprüfen Sie den eingegebenen Sitzungs-Code erneut. Möglicherweise haben Sie sich vertippt! Sie können den Code oben auf dieser Seite bearbeiten.</p>
                                 <VerifyingChallengeSelectionComponent sessionInformation={sessionInformation} currentlySelectedChallengeResponse={currentlySelectedChallengeResponse} setCurrentlySelectedChallengeResponse={setCurrentlySelectedChallengeResponse}/>
                                 <div className={"row mx-1"}>
-                                    <button className={"btn btn-primary col"} type={"button"} onClick={handleShortcodeSessionAuthorization} disabled={isLoading}>Bestätige die Auswahl und autorisiere das Gerät mit dem Sitzungscode <strong>{lastConfirmedShortcode}</strong></button>
+                                    <button className={"btn btn-primary col"} type={"button"} data-bs-toggle="modal" data-bs-target="#confirmAuthorizationModal" disabled={isLoading}>Bestätige die Auswahl und autorisiere das Gerät mit dem Sitzungscode <strong>{lastConfirmedShortcode}</strong></button>
+
+                                    <div className="modal warning" tabIndex="-1" id={"confirmAuthorizationModal"}>
+                                        <div className="modal-dialog">
+                                            <div className="modal-content">
+                                                <div className="modal-header bg-warning">
+                                                    <h5 className="modal-title">Achtung!</h5>
+                                                    <button type="button" className="btn-close" data-bs-dismiss="modal"
+                                                            aria-label="Schließen"></button>
+                                                </div>
+                                                <div className="modal-body">
+                                                    <p>Bitte versichern Sie sich, dass Sie nur Geräte für den Zugang zu Ihrem Benutzerkonto autorisieren, für die Sie den Autorisierungscode entweder selbst generiert haben
+                                                        oder für die Sie anderweitig sicherstellen können, dass es sich tatsächlich um diejenigen
+                                                        Geräte handelt, die Sie autorisieren möchten. <strong>Ein über ein autorisiertes Gerät angemeldeter Benutzer besitzt dieselben Berechtigungen für Ihr Benutzerkonto wie Sie selbst!</strong></p>
+                                                </div>
+                                                <div className="modal-footer">
+                                                    <button type="button" className="btn btn-secondary"
+                                                            data-bs-dismiss="modal">Abbrechen
+                                                    </button>
+                                                    <button type="button" className="btn btn-warning" onClick={handleShortcodeSessionAuthorization} data-bs-dismiss="modal">Bestätige die Autorisierung</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         }
