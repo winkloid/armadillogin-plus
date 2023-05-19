@@ -1,7 +1,6 @@
-import {useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {browserSupportsWebAuthn, startRegistration} from "@simplewebauthn/browser";
 import axios from "axios";
-
 import terminal from "virtual:terminal";
 import ErrorComponent from "../components/ErrorComponent.jsx";
 import {ErrorState} from "../types/errorState.js";
@@ -41,7 +40,12 @@ export default function Registration() {
                 setFetchingRegistrationOptionsSuccess(true);
                 setErrorState(ErrorState.success);
                 setIsLoading(false);
-            } else {
+            } else if(optionsResponse.status === 400) {
+                setCurrentError("Fehler: " + optionsResponse.data);
+                setErrorState(ErrorState.badRequestError);
+                setIsLoading(false);
+            }
+            else {
                 setCurrentError("Fehler: " + optionsResponse.data);
                 setErrorState(ErrorState.registrationOptionsError);
                 setIsLoading(false);
@@ -89,7 +93,7 @@ export default function Registration() {
                     </button>
                     )}
                 </form>
-                {(errorState !== ErrorState.success) && <ErrorComponent errorState = {errorState} errorMessage={currentError}/>}
+                <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
             </>
         )
     } else if(fetchingRegistrationOptionsSuccess && !completeRegistrationSuccess) {
