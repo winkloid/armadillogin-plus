@@ -94,8 +94,7 @@ export default function Login() {
                         className={"btn btn-primary mb-3"}>
                     Bestätigen
                 </button>
-
-                {(errorState !== ErrorState.success) && <ErrorComponent errorState={errorState} errorMessage={currentError}/>}
+                <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
             </>
         )
     } else if(fetchingAuthenticationOptionsSuccess && !completeAuthenticationSuccess) {
