@@ -1,8 +1,9 @@
 import {ErrorState} from "../types/errorState.js";
 import Modal from 'react-modal';
 
-import ErrorComponentPortal from "./ErrorComponentPortal.jsx";
+import ArmadilloginModalPortal from "./modals/ArmadilloginModalPortal.jsx";
 import {useState} from "react";
+import ArmadilloginModal from "./modals/ArmadilloginModal.jsx";
 Modal.setAppElement("#root");
 
 export default function ErrorComponent({ errorState, setErrorState, errorMessage}) {
@@ -14,8 +15,7 @@ export default function ErrorComponent({ errorState, setErrorState, errorMessage
         return null;
     } else {
         return (
-            <Modal isOpen={errorState !== ErrorState.success} className={"flex col-10 m-auto mt-3"} closeTimeoutMS={250} onRequestClose={handleModalClose}
-                   contentLabel="Fehlermeldung" >
+            <ArmadilloginModal isOpen={errorState !== ErrorState.success} handleModalClose={handleModalClose} portalId={"armadillogin-error-modal"} contentLabel={"Fehlermeldung"}>
                 <div className={"card p-0 m-0"}>
                     <div className={"card-header bg-danger text-white"}>
                         {(errorState === ErrorState.connectionError) &&
@@ -51,7 +51,7 @@ export default function ErrorComponent({ errorState, setErrorState, errorMessage
                         </button>
                     </div>
                 </div>
-            </Modal>
+            </ArmadilloginModal>
         );
     }
 }
