@@ -5,6 +5,7 @@ import ShortcodeAsTextComponent from "../../components/shortcodeLoginComponents/
 import terminal from "virtual:terminal";
 import {Navigate} from "react-router-dom";
 import ShortcodeAsQrComponent from "../../components/shortcodeLoginComponents/ShortcodeAsQrComponent.jsx";
+import ErrorComponent from "../../components/ErrorComponent.jsx";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -155,6 +156,7 @@ export default function GenerateShortcode () {
                         }
                     </div>
                 </div>
+                <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
             </div>
         );
     } else {

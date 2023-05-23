@@ -1,4 +1,5 @@
 import {NavLink, Outlet} from "react-router-dom";
+import '../armadillogin.css';
 
 export default function Root() {
     return(

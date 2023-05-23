@@ -3,9 +3,13 @@ import {useState} from "react";
 import AccountSettingsComponent from "../components/privatePageComponents/AccountSettingsComponent.jsx";
 import AccountSettings from "../components/privatePageComponents/AccountSettingsComponent.jsx";
 import {Link} from "react-router-dom";
+import {ErrorState} from "../types/errorState.js";
+import ErrorComponent from "../components/ErrorComponent.jsx";
 
 export default function Private () {
     const [isloggedIn, setIsLoggedIn] = useState(true);
+    const [errorState, setErrorState] = useState(ErrorState.success);
+    const [currentError, setCurrentError] = useState("");
     const [accountDeletionTried, setAccountDeletionTried] = useState(false);
     const [accountDeletionSuccess, setAccountDeletionSuccess] = useState(false);
 
@@ -16,9 +20,10 @@ export default function Private () {
                 <h1 className={"mb-5"}>Willkommen in Ihrem persönlichen Bereich!</h1>
                 <h2 className={"mb-3"}>Persönliche Informationen</h2>
                 <h2>Authenticator-Einstellungen</h2>
-                <AuthenticatorSettings setIsLoggedIn={setIsLoggedIn} />
+                <AuthenticatorSettings setIsLoggedIn={setIsLoggedIn} setErrorState={setErrorState} setCurrentError={setCurrentError} />
                 <h2 className={"mb-3"}>Benutzerkonto-Einstellungen</h2>
-                <AccountSettings setIsLoggedIn={setIsLoggedIn} setAccountDeletionTried={setAccountDeletionTried} setAccountDeletionSuccess={setAccountDeletionSuccess}/>
+                <AccountSettings setIsLoggedIn={setIsLoggedIn} setAccountDeletionTried={setAccountDeletionTried} setAccountDeletionSuccess={setAccountDeletionSuccess} setCurrentError={setCurrentError} setErrorState={setErrorState}/>
+                <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
             </>
         );
     } else if(accountDeletionTried && !accountDeletionSuccess) {

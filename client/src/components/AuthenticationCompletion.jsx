@@ -55,7 +55,7 @@ export default function AuthenticationCompletion ( {authenticationOptions, setAu
                 Los geht's
             </button>
 
-            {(errorState !== ErrorState.success) && <ErrorComponent errorState = {errorState} errorMessage={currentError}/>}
+            <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
         </>
     );
 }

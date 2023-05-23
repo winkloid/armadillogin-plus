@@ -1,7 +1,6 @@
 import {useState} from "react";
 import axios from "axios";
 import {ErrorState} from "../../types/errorState.js";
-import ErrorComponent from "../ErrorComponent.jsx";
 import terminal from "virtual:terminal";
 
 // Enable sending cookies with all requests by default
@@ -11,10 +10,8 @@ axios.defaults.validateStatus = function () {
     return true;
 };
 
-export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried, setAccountDeletionSuccess}) {
+export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried, setAccountDeletionSuccess, setErrorState, setCurrentError}) {
     const [isLoading, setIsLoading] = useState(false);
-    const [errorState, setErrorState] = useState(ErrorState.success);
-    const [currentError, setCurrentError] = useState("");
 
     const handleLogOut = async () => {
         setIsLoading(true);
@@ -72,7 +69,6 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
                 <div className="card p-0 mb-3">
                     <div className="card-header col">
                         <h4>Benutzerkonto-Einstellungen</h4>
-                        <ErrorComponent errorState={errorState} errorMessage={currentError}/>
                     </div>
                     <div className={"card-body"}>
                         {/* TODO: Benutzername mit angeben */}

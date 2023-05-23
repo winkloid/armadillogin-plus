@@ -13,11 +13,9 @@ axios.defaults.validateStatus = function () {
     return true;
 };
 
-export default function AuthenticatorSettings({setIsLoggedIn}) {
+export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, setCurrentError}) {
     const [customAuthenticatorName, setCustomAuthenticatorName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [currentError, setCurrentError] = useState("");
-    const [errorState, setErrorState] = useState(ErrorState.success);
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
     // set by useEffect
@@ -79,13 +77,13 @@ export default function AuthenticatorSettings({setIsLoggedIn}) {
                 setIsLoggedIn(false);
             } else if(authenticatorDeletionResponse.status === 400) {
                 setCurrentError(authenticatorDeletionResponse.data);
-                setErrorState(errorState.authenticatorDeletionError);
+                setErrorState(ErrorState.authenticatorDeletionError);
             } else if(authenticatorDeletionResponse.status === 500) {
                 setCurrentError(authenticatorDeletionResponse.data);
-                setErrorState(errorState.serverError);
+                setErrorState(ErrorState.serverError);
             } else {
                 setCurrentError("Unerwarteter Fehler bei der Kommunikation mit dem Server. Bitte prüfen Sie Ihre Eingaben und Ihre Verbindung.");
-                setErrorState(errorState.authenticatorDeletionError);
+                setErrorState(ErrorState.authenticatorDeletionError);
             }
             setIsLoading(false);
         } catch(error) {
