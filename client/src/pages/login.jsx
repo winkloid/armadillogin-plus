@@ -1,11 +1,13 @@
 import {browserSupportsWebAuthn} from "@simplewebauthn/browser";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import axios from "axios";
 import {ErrorState} from "../types/errorState.js";
 import ErrorComponent from "../components/ErrorComponent.jsx";
 import terminal from "virtual:terminal";
 import AuthenticationCompletion from "../components/AuthenticationCompletion.jsx";
-import {Navigate, useLocation} from "react-router-dom";
+import {Navigate, useLocation, useOutletContext} from "react-router-dom";
+import {NavigationState} from "../types/navigationState.js";
+import AuthenticationSuccessfulComponent from "../components/AuthenticationSuccessfulComponent.jsx";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -16,6 +18,7 @@ axios.defaults.validateStatus = function () {
 
 export default function Login() {
     const { state } = useLocation();
+    const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
 
     const [userName, setUserName] = useState("");
     const [authenticationOptions, setAuthenticationOptions] = useState({});
@@ -24,6 +27,26 @@ export default function Login() {
     const [completeAuthenticationSuccess, setCompleteAuthenticationSuccess] = useState(false);
     const [errorState, setErrorState] = useState(ErrorState.success);
     const [currentError, setCurrentError] = useState("");
+
+    useEffect(() => {
+        if(state?.isShortcodeLogin) {
+            if(!fetchingAuthenticationOptionsSuccess) {
+                setCurrentNavigationState(NavigationState.shortcodeAuthorization.authentication_userNameInput);
+            } else if(fetchingAuthenticationOptionsSuccess && !completeAuthenticationSuccess) {
+                setCurrentNavigationState(NavigationState.shortcodeAuthorization.authentication_authenticatorAuthentication);
+            } else {
+                setCurrentNavigationState(NavigationState.shortcodeAuthorization.authorizationScreen);
+            }
+        } else {
+            if(!fetchingAuthenticationOptionsSuccess) {
+                setCurrentNavigationState(NavigationState.login.userNameInput);
+            } else if(fetchingAuthenticationOptionsSuccess && !completeAuthenticationSuccess) {
+                setCurrentNavigationState(NavigationState.login.authenticatorAuthentication);
+            } else {
+                setCurrentNavigationState(NavigationState.private);
+            }
+        }
+    })
 
     const getAuthenticationOptions = async () => {
         setIsLoading(true);
@@ -66,36 +89,34 @@ export default function Login() {
 
     if(!fetchingAuthenticationOptionsSuccess) {
         return (
-            <>
-                <h1>Login / Authentifizierung</h1>
-                <p>Bitte geben Sie im folgenden Texteingabefeld den Benutzernamen ein, mit dem Sie sich registriert
-                    haben. Verwenden Sie anschließend Ihren FIDO2-/WebAuthn-Authenticator, um Zugang zu Ihrem Konto zu
-                    erhalten. Durch die Daten, die auf Ihrem persönlichen Authenticator gespeichert sind, kann dieser
-                    Ihre Identität dem System gegenüber bestätigen.</p>
-
-                <form>
-                    <div className={"input-group mb-3"}>
+            <div className={"card p-0"}>
+                <div className={"card-header"}>
+                    <h1 className={"display-5 m-0"}>Login / Authentifizierung</h1>
+                </div>
+                <div className={"card-body"}>
+                    <p className={"mb-2"}>Bitte geben Sie im folgenden Texteingabefeld den Benutzernamen ein, mit dem Sie sich registriert
+                        haben. Verwenden Sie anschließend Ihren FIDO2-/WebAuthn-Authenticator, um Zugang zu Ihrem Konto zu
+                        erhalten. Durch die Daten, die auf Ihrem persönlichen Authenticator gespeichert sind, kann dieser
+                        Ihre Identität dem System gegenüber bestätigen.</p>
+                    <div className={"input-group"}>
                         <span className={"input-group-text"} id={"userName-addon"}>@</span>
                         <input value={userName}
                                onChange={(userNameChangeEvent) => setUserName(userNameChangeEvent.target.value)}
                                type={"text"}
                                disabled={isLoading}
-                               className={"form-control"} placeholder={"Benutzername"}
+                               className={"form-control border-primary"} placeholder={"Benutzername"}
                                aria-label={"Benutzername"} aria-describedby={"userName-addon"}
                         />
                     </div>
-                </form>
-
-                {!browserSupportsWebAuthn() &&
-                    <p className={"text-danger"}>Leider unterstützt Ihr Browser FIDO2/WebAuthn nicht. Bitte fahren Sie
-                        zur Authentifizierung in einem anderen Browser fort.</p>}
-
-                <button onClick={getAuthenticationOptions} type={"button"} disabled={!browserSupportsWebAuthn()}
-                        className={"btn btn-primary mb-3"}>
-                    Bestätigen
-                </button>
+                </div>
+                <div className={"card-footer"}>
+                    <button onClick={getAuthenticationOptions} type={"button"} disabled={!browserSupportsWebAuthn()}
+                            className={"btn btn-primary"}>
+                        Bestätigen
+                    </button>
+                </div>
                 <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
-            </>
+            </div>
         )
     } else if(fetchingAuthenticationOptionsSuccess && !completeAuthenticationSuccess) {
         return(<AuthenticationCompletion authenticationOptions = {authenticationOptions} setAuthenticationSuccess = {setCompleteAuthenticationSuccess}/>);
@@ -107,7 +128,7 @@ export default function Login() {
                 return(<Navigate to={"/private"} />);
             }
         } else {
-            return(<Navigate to={"/private"} />);
+            return(<AuthenticationSuccessfulComponent />);
         }
     }
 }

@@ -13,9 +13,8 @@ axios.defaults.validateStatus = function () {
     return true;
 };
 
-export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, setCurrentError}) {
+export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, setCurrentError, isLoading, setIsLoading}) {
     const [customAuthenticatorName, setCustomAuthenticatorName] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
     // set by useEffect
@@ -177,84 +176,47 @@ export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, set
         }
     }
 
-    if(isLoading) {
-        return(
-            <div className={"container"}>
-                <div className={"row"}>
-                    <div className="card p-0 mb-3">
-                        <div className="card-header col">
-                            <h4>Authenticators</h4>
-                        </div>
-                        <div className="card-body">
-                            <h5>Aktuell mit Ihrem Benutzerkonto verknüpfte Authenticators</h5>
-                            <div className={"d-flex justify-content-center"}>
-                                <div className="spinner-border text-primary m-5"  role="status">
-                                    <span className="visually-hidden">Lade Authenticator-Liste...</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div className={"card-footer"}>
-                            <h5>Weiteren Authenticator hinzufügen</h5>
-                            <p>Auch wenn Sie das Gerät, mit dem Sie sich normalerweise in Ihr Benutzerkonto einloggen verloren geht, sollten Sie den Zugang zu Ihrem Konto nicht verlieren. Daher ist es ratsam, mehrere Geräte mit Ihrem Benutzerkonto zu verknüpfen, um sich im Falle eines Geräteverlusts mit einem Alternativgerät anmelden zu können.</p>
-                            <p>Sie können in diesem Abschnitt einen optionalen Namen für einen weiteren Authenticator vergeben und ihn mit Ihrem Konto verknüpfen. </p>
-                            <form>
-                                <div className={"input-group mb-3"}>
-                                    <span className={"input-group-text"} id={"authenticatorName-addon"}>🔑</span>
-                                    <input value={customAuthenticatorName}
-                                           onChange={(authenticatorNameChange) => setCustomAuthenticatorName(authenticatorNameChange.target.value)}
-                                           type={"text"}
-                                           disabled={isLoading}
-                                           className={"form-control"} placeholder={"Authenticator-Name (optional)"}
-                                           aria-label={"Name Ihres Authenticators"} aria-describedby={"authenticatorName-addon"}/>
-                                </div>
-                            </form>
-                            {registrationSuccess && (<><p>Authenticator wurde erfolgreich hinzugefügt</p></>)}
-                        </div>
+    return (
+        <div className="card p-0 mb-3 border-secondary">
+            <div className="card-header border-secondary">
+                <h4 className={"m-0"}>Authenticators</h4>
+            </div>
+            <div className="card-body">
+                <h5>Liste aller aktuell mit Ihrem Benutzerkonto verknüpfter Authenticators:</h5>
+                {isLoading &&
+                <div className={"d-flex justify-content-center"}>
+                    <div className="spinner-border text-primary m-5"  role="status">
+                        <span className="visually-hidden">Lade Authenticator-Liste...</span>
                     </div>
                 </div>
+                }
+                {!isLoading && <AuthenticatorList authenticatorList={authenticatorList} handleAuthenticatorDeletion={handleAuthenticatorDeletion}/>}
             </div>
-        );
-    } else {
-        return (
-            <div className={"container"}>
-                <div className="row">
-                    <div className="card p-0 mb-3">
-                        <div className="card-header col">
-                            <h4>Authenticators</h4>
-                        </div>
-                        <div className="card-body">
-                            <h5>Aktuell mit Ihrem Benutzerkonto verknüpfte Authenticators</h5>
-                            <AuthenticatorList authenticatorList={authenticatorList} handleAuthenticatorDeletion={handleAuthenticatorDeletion}/>
-                        </div>
-                        <div className={"card-footer"}>
-                            <h5>Weiteren Authenticator hinzufügen</h5>
-                            <p>Auch wenn Sie das Gerät, mit dem Sie sich normalerweise in Ihr Benutzerkonto einloggen
-                                verloren geht, sollten Sie den Zugang zu Ihrem Konto nicht verlieren. Daher ist es
-                                ratsam, mehrere Geräte mit Ihrem Benutzerkonto zu verknüpfen, um sich im Falle eines
-                                Geräteverlusts mit einem Alternativgerät anmelden zu können.</p>
-                            <p>Sie können in diesem Abschnitt einen optionalen Namen für einen weiteren Authenticator
-                                vergeben und ihn mit Ihrem Konto verknüpfen. </p>
-                            <form>
-                                <div className={"input-group mb-3"}>
-                                    <span className={"input-group-text"} id={"authenticatorName-addon"}>🔑</span>
-                                    <input value={customAuthenticatorName}
-                                           onChange={(authenticatorNameChange) => setCustomAuthenticatorName(authenticatorNameChange.target.value)}
-                                           type={"text"}
-                                           disabled={isLoading}
-                                           className={"form-control"} placeholder={"Authenticator-Name (optional)"}
-                                           aria-label={"Name Ihres Authenticators"}
-                                           aria-describedby={"authenticatorName-addon"}/>
-                                </div>
-                            </form>
-                            <button className="btn btn-primary" type={"button"} onClick={handleAuthenticatorAddition}>
-                                <span>➕ </span>Füge weiteren hinzu
-                            </button>
-
-                            {registrationSuccess && (<><p>Authenticator wurde erfolgreich hinzugefügt</p></>)}
-                        </div>
+            <div className={"card-footer"}>
+                <h5>Weiteren Authenticator hinzufügen</h5>
+                <p>Auch wenn Sie das Gerät, mit dem Sie sich normalerweise in Ihr Benutzerkonto einloggen
+                    verloren geht, sollten Sie den Zugang zu Ihrem Konto nicht verlieren. Daher ist es
+                    ratsam, mehrere Geräte mit Ihrem Benutzerkonto zu verknüpfen, um sich im Falle eines
+                    Geräteverlusts mit einem Alternativgerät anmelden zu können.</p>
+                <p>Sie können in diesem Abschnitt einen optionalen Namen für einen weiteren Authenticator
+                    vergeben und ihn mit Ihrem Konto verknüpfen. </p>
+                <form>
+                    <div className={"input-group mb-3"}>
+                        <span className={"input-group-text"} id={"authenticatorName-addon"}>🔑</span>
+                        <input value={customAuthenticatorName}
+                               onChange={(authenticatorNameChange) => setCustomAuthenticatorName(authenticatorNameChange.target.value)}
+                               type={"text"}
+                               disabled={isLoading}
+                               className={"form-control"} placeholder={"Authenticator-Name (optional)"}
+                               aria-label={"Name Ihres Authenticators"}
+                               aria-describedby={"authenticatorName-addon"}/>
                     </div>
-                </div>
+                </form>
+                <button className="btn btn-secondary" type={"button"} onClick={handleAuthenticatorAddition} disabled={isLoading}>
+                    <span>➕ </span>Füge weiteren hinzu
+                </button>
+                {registrationSuccess && (<><p>Authenticator wurde erfolgreich hinzugefügt</p></>)}
             </div>
-        );
-    }
+        </div>
+    );
 }

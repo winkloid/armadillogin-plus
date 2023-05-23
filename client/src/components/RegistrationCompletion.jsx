@@ -1,15 +1,23 @@
 import {browserSupportsWebAuthn, startRegistration} from "@simplewebauthn/browser";
 import terminal from "virtual:terminal";
 import {ErrorState} from "../types/errorState.js";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import axios from "axios";
 import ErrorComponent from "./ErrorComponent.jsx";
+import {useOutletContext} from "react-router-dom";
+import {NavigationState} from "../types/navigationState.js";
 
 export default function RegistrationCompletion({registrationOptions, setRegistrationSuccess}) {
+    const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
+
     const [errorState, setErrorState] = useState(ErrorState.success);
     const [currentError, setCurrentError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [customAuthenticatorName, setCustomAuthenticatorName] = useState("");
+
+    useEffect(() => {
+        setCurrentNavigationState(NavigationState.registration.authenticatorRegistration);
+    })
 
     const completeRegistration = async () => {
         setIsLoading(true);
@@ -60,28 +68,37 @@ export default function RegistrationCompletion({registrationOptions, setRegistra
         }
     }
     return(
-        <>
-            <h1>Registrierung Ihres FIDO2/WebAuthn-Authenticators</h1>
-            <p>Damit nur Sie sich in Ihren persönlichen Mitgliederbereich einloggen können, muss ArmadilLogin PLUS Ihre Identität nachvollziehen können. Bisher verwendet ein Großteil der heute verfügbaren Software dazu Passwörter. ArmadilLogin PLUS erlaubt es Ihnen, Ihre Identität passwortlos nachzuweisen. Hierzu ist ein sogenannter "Authenticator" erforderlich. Ein Authenticator kann entweder bereits in Ihrem Gerät verbaut sein und über biometrische Merkmale wie Fingerabdrücke, Iris-Scan, etc. entsperrt werden oder in Form eines Hardware-Sicherheitsschlüssels vorliegen.</p>
-            <p>Um Ihr Konto bei ArmadilLogin PLUS mit einem Authenticator zu verknüpfen, drücken Sie den Knpof "Los geht's".</p>
-
-            <p>Optional können Sie hier auch einen Namen für den neu zu registrierenden Authenticator vergeben. Das kann später helfen, den Überblick über alle Ihrem Konto hinzugefügten Authenticators zu behalten.</p>
-            <form>
-                <div className={"input-group mb-3"}>
+        <div className={"card p-0"}>
+            <div className={"card-header"}>
+                <h1 className={"display-5"}>Registrierung Ihres FIDO2/WebAuthn-Authenticators</h1>
+            </div>
+            <div className={"card-body"}>
+                <p>Damit nur Sie sich in Ihren persönlichen Mitgliederbereich einloggen können, muss ArmadilLogin PLUS Ihre Identität nachvollziehen können. Bisher verwendet ein Großteil der heute verfügbaren Software dazu Passwörter. ArmadilLogin PLUS erlaubt es Ihnen, <strong>Ihre Identität passwortlos nachzuweisen</strong>. Hierzu ist ein sogenannter <strong>"Authenticator"</strong> erforderlich. Ein Authenticator kann entweder bereits in Ihrem Gerät verbaut sein und über biometrische Merkmale wie Fingerabdrücke, Iris-Scan, etc. entsperrt werden oder in Form eines Hardware-Sicherheitsschlüssels vorliegen. Er dient dazu, alle <strong>geheimen Informationen für den Login sicher für Sie aufzubewahren</strong>.</p>
+                <p>Um Ihr Konto bei ArmadilLogin PLUS mit einem Authenticator zu verknüpfen, betätigen Sie die Schaltfläche "Verknüpfe meinen Authenticator".</p>
+                <p>Optional können Sie hier auch einen Namen für den neu zu registrierenden Authenticator vergeben. Das kann später helfen, den Überblick über alle Ihrem Konto hinzugefügten Authenticators zu behalten.</p>
+                <div className={"input-group"}>
                     <span className={"input-group-text"} id={"authenticatorName-addon"}>🔑</span>
                     <input value={customAuthenticatorName}
                            onChange={(authenticatorNameChange) => setCustomAuthenticatorName(authenticatorNameChange.target.value)}
                            type={"text"}
                            disabled={isLoading}
-                           className={"form-control"} placeholder={"Authenticator-Name (optional)"}
+                           className={"form-control border-primary"} placeholder={"Authenticator-Name (optional)"}
                            aria-label={"Name Ihres Authenticators"} aria-describedby={"authenticatorName-addon"}/>
                 </div>
-            </form>
-            <button onClick={completeRegistration} type={"button"} className={"btn btn-primary mb-3"}>
-                Los geht's
-            </button>
+            </div>
+            <div className={"card-footer"}>
+                {!isLoading ? (
+                    <button onClick={completeRegistration} disabled={isLoading} type={"button"} className={"btn btn-primary"}>
+                        Verknüpfe meinen Authenticator
+                    </button>
+                ) : (
+                    <button type={"button"} disabled={true} className={"btn btn-primary"}>
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span> Warte Auf Abschluss der Registrierung...</span>
+                    </button>
+                )}
+            </div>
 
             <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
-        </>
+        </div>
     );
 }

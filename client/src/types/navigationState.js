@@ -4,6 +4,7 @@ export const NavigationState = Object.freeze({
         init: Symbol("WELCOME"),
         registration_completed: Symbol("REG_COMPLETED"),
         login_completed: Symbol("LOGIN_COMPLETED"),
+        shortcode_generated: Symbol("SHORTCODE_GENERATED"),
         shortcode_completed: Symbol("SHORTCODE_COMPLETED")
     },
     registration: {

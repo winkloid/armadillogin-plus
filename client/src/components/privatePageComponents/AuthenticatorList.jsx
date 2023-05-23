@@ -1,7 +1,7 @@
 export default function AuthenticatorList({authenticatorList, handleAuthenticatorDeletion}) {
 
     const authenticatorListItems = authenticatorList.map((authenticator) => (
-        <div className="card p-0 mb-3" key={authenticator.credentialId}>
+        <div className="card p-0 mb-1 border-warning bg-warning bg-opacity-10" key={authenticator.credentialId}>
             <div className="card-header col">
                 {authenticator.customCredentialName && (authenticator.customCredentialName !== "") && <h6 className={"m-0"}>{authenticator.customCredentialName}</h6>}
                 {((!authenticator.customCredentialName) || (authenticator.customCredentialName === "") || (authenticator.customCredentialName === undefined)) && <h6 className={"m-0 fst-italic text-secondary"}>Unbenannt</h6>}
@@ -12,7 +12,7 @@ export default function AuthenticatorList({authenticatorList, handleAuthenticato
             </div>
             <div className={"card-footer"}>
                 <h5>Optionen für diesen Authenticator</h5>
-                <div className={"card p-0 mb-2"}>
+                <div className={"card bg-danger bg-opacity-10 p-0 mb-2"}>
                     <div className={"card-header m-0"}>
                         <h6 className={"text-danger mb-0"}>Authenticator löschen</h6>
                     </div>
