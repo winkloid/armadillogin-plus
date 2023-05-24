@@ -3,7 +3,6 @@ import {useEffect, useState} from "react";
 import axios from "axios";
 import {ErrorState} from "../types/errorState.js";
 import ErrorComponent from "../components/ErrorComponent.jsx";
-import terminal from "virtual:terminal";
 import AuthenticationCompletion from "../components/AuthenticationCompletion.jsx";
 import {Navigate, useLocation, useOutletContext} from "react-router-dom";
 import {NavigationState} from "../types/navigationState.js";
@@ -128,7 +127,7 @@ export default function Login() {
                 return(<Navigate to={"/private"} />);
             }
         } else {
-            return(<AuthenticationSuccessfulComponent />);
+            return(<AuthenticationSuccessfulComponent privateState={NavigationState.welcome_login_completed}/>);
         }
     }
 }

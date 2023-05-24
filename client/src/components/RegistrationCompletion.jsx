@@ -1,4 +1,4 @@
-import {browserSupportsWebAuthn, startRegistration} from "@simplewebauthn/browser";
+import {startRegistration} from "@simplewebauthn/browser";
 import terminal from "virtual:terminal";
 import {ErrorState} from "../types/errorState.js";
 import {useEffect, useState} from "react";

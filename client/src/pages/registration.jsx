@@ -1,11 +1,10 @@
-import {useEffect, useRef, useState} from "react";
-import {browserSupportsWebAuthn, startRegistration} from "@simplewebauthn/browser";
+import {useEffect, useState} from "react";
+import {browserSupportsWebAuthn} from "@simplewebauthn/browser";
 import axios from "axios";
-import terminal from "virtual:terminal";
 import ErrorComponent from "../components/ErrorComponent.jsx";
 import {ErrorState} from "../types/errorState.js";
 import RegistrationCompletion from "../components/RegistrationCompletion.jsx";
-import {Navigate, useOutletContext} from "react-router-dom";
+import {useOutletContext} from "react-router-dom";
 import {NavigationState} from "../types/navigationState.js";
 import RegistrationSuccessfulComponent from "../components/RegistrationSuccessfulComponent.jsx";
 
@@ -33,7 +32,7 @@ export default function Registration() {
         } else if(fetchingRegistrationOptionsSuccess && !completeRegistrationSuccess) {
             setCurrentNavigationState(NavigationState.registration.authenticatorRegistration);
         } else {
-            setCurrentNavigationState(NavigationState.welcome.registration_completed);
+            setCurrentNavigationState(NavigationState.welcome_registration_completed);
         }
     });
 

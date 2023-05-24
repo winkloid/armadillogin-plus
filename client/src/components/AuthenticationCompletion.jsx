@@ -2,7 +2,6 @@ import {ErrorState} from "../types/errorState.js";
 import ErrorComponent from "./ErrorComponent.jsx";
 import {useState} from "react";
 import {startAuthentication} from "@simplewebauthn/browser";
-import terminal from "virtual:terminal";
 import axios from "axios";
 
 export default function AuthenticationCompletion ( {authenticationOptions, setAuthenticationSuccess}) {

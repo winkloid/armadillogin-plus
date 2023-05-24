@@ -1,13 +1,17 @@
 import AuthenticatorSettings from "../components/privatePageComponents/AuthenticatorSettingsComponent.jsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import AccountSettings from "../components/privatePageComponents/AccountSettingsComponent.jsx";
-import {Link, useOutletContext} from "react-router-dom";
+import {Link, useLocation, useOutletContext, useParams} from "react-router-dom";
 import {ErrorState} from "../types/errorState.js";
 import ErrorComponent from "../components/ErrorComponent.jsx";
 import {NavigationState} from "../types/navigationState.js";
+import terminal from "virtual:terminal";
 
 export default function Private () {
     const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
+
+    // needed so that the right navigationState is set when logging out from private area
+    const {privateState} = useParams();
 
     const [isloggedIn, setIsLoggedIn] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
@@ -15,6 +19,10 @@ export default function Private () {
     const [currentError, setCurrentError] = useState("");
     const [accountDeletionTried, setAccountDeletionTried] = useState(false);
     const [accountDeletionSuccess, setAccountDeletionSuccess] = useState(false);
+
+    useEffect(() => {
+        setCurrentNavigationState(NavigationState.private);
+    }, []);
 
     if(isloggedIn && !accountDeletionTried && !accountDeletionSuccess) {
         return (
@@ -24,7 +32,12 @@ export default function Private () {
                 </div>
                 <div className={"card-body"}>
                     <AuthenticatorSettings setIsLoggedIn={setIsLoggedIn} setErrorState={setErrorState} setCurrentError={setCurrentError} isLoading={isLoading} setIsLoading={setIsLoading}/>
-                    <AccountSettings setIsLoggedIn={setIsLoggedIn} setAccountDeletionTried={setAccountDeletionTried} setAccountDeletionSuccess={setAccountDeletionSuccess} setCurrentError={setCurrentError} setErrorState={setErrorState} isLoading={isLoading} setIsLoading={setIsLoading} setCurrentNavigationState={setCurrentNavigationState}/>
+
+                    {/*
+                        Also pass the state as privateState.
+                        Passing the State is important so that we navigate to the welcome component with the right navigation state in the next step.
+                    */}
+                    <AccountSettings setIsLoggedIn={setIsLoggedIn} setAccountDeletionTried={setAccountDeletionTried} setAccountDeletionSuccess={setAccountDeletionSuccess} setCurrentError={setCurrentError} setErrorState={setErrorState} isLoading={isLoading} setIsLoading={setIsLoading} setCurrentNavigationState={setCurrentNavigationState} privateState={privateState}/>
                 </div>
                 <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
             </div>

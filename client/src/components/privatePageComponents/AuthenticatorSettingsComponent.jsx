@@ -3,7 +3,6 @@ import axios from "axios";
 import {ErrorState} from "../../types/errorState.js";
 import {startRegistration} from "@simplewebauthn/browser";
 import terminal from "virtual:terminal";
-import {useNavigate} from "react-router-dom";
 import AuthenticatorList from "./AuthenticatorList.jsx";
 
 // Enable sending cookies with all requests by default

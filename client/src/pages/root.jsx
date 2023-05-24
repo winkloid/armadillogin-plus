@@ -5,7 +5,7 @@ import {NavigationState} from "../types/navigationState.js";
 import {browserSupportsWebAuthn} from "@simplewebauthn/browser";
 
 export default function Root() {
-    const [currentNavigationState, setCurrentNavigationState] = useState(NavigationState.welcome.init);
+    const [currentNavigationState, setCurrentNavigationState] = useState(NavigationState.welcome_init);
 
     return(
         <>

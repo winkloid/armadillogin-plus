@@ -1,7 +1,5 @@
-import {useState} from "react";
 import axios from "axios";
 import {ErrorState} from "../../types/errorState.js";
-import terminal from "virtual:terminal";
 import {NavigationState} from "../../types/navigationState.js";
 
 // Enable sending cookies with all requests by default
@@ -11,7 +9,7 @@ axios.defaults.validateStatus = function () {
     return true;
 };
 
-export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried, setAccountDeletionSuccess, setErrorState, setCurrentError, isLoading, setIsLoading, setCurrentNavigationState}) {
+export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried, setAccountDeletionSuccess, setErrorState, setCurrentError, isLoading, setIsLoading, setCurrentNavigationState, privateState}) {
 
     const handleLogOut = async () => {
         setIsLoading(true);
@@ -20,7 +18,13 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
                 method: "post",
                 url: import.meta.env.VITE_BACKEND_BASE_URL + "/api/account/logOutUser"
             });
-            setCurrentNavigationState(NavigationState.welcome.login_completed);
+
+            // check which value was assigned to privateState inside AuthenticationSuccessfulComponent
+            if(privateState === "welcome_shortcode_completed") {
+                setCurrentNavigationState(NavigationState.welcome_shortcode_completed);
+            } else {
+                setCurrentNavigationState(NavigationState.welcome_login_completed);
+            }
             setIsLoggedIn(false);
             setErrorState(ErrorState.success);
         } catch(error) {
@@ -44,7 +48,7 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
                 setCurrentError("");
                 setErrorState(ErrorState.success);
                 setAccountDeletionSuccess(true);
-                setCurrentNavigationState(NavigationState.welcome.init);
+                setCurrentNavigationState(NavigationState.welcome_init);
                 setIsLoggedIn(false);
             } else if (accountDeletionResponse.status === 401) {
                 setIsLoggedIn(false);

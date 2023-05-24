@@ -1,6 +1,6 @@
 import axios from "axios";
 import {useEffect, useState} from "react";
-import {Link, useLocation} from "react-router-dom";
+import {Link, useLocation, useOutletContext} from "react-router-dom";
 import {ErrorState} from "../../types/errorState.js";
 import terminal from "virtual:terminal";
 import SessionInformationDisplayComponent
@@ -8,9 +8,11 @@ import SessionInformationDisplayComponent
 import VerifyingChallengeSelectionComponent
     from "../../components/shortcodeLoginComponents/VerifyingChallengeSelectionComponent.jsx";
 import ErrorComponent from "../../components/ErrorComponent.jsx";
+import {NavigationState} from "../../types/navigationState.js";
 
 export default function AuthorizeShortcodeSession() {
     const { state } = useLocation();
+    const [currentNavigationState, setcurrentNavigationState] = useOutletContext();
 
     const [isLoading, setIsLoading] = useState(false);
     const [currentError, setCurrentError] = useState("");
@@ -31,6 +33,10 @@ export default function AuthorizeShortcodeSession() {
             fetchShortcodeSessionInformation();
         }
     }, []);
+
+    useEffect(() => {
+        setcurrentNavigationState(NavigationState.shortcodeAuthorization.authorizationScreen);
+    })
 
     const fetchShortcodeSessionInformation = async () => {
         setIsLoading(true);
@@ -187,6 +193,7 @@ export default function AuthorizeShortcodeSession() {
                         </div>
                     );
                 } else {
+                    setcurrentNavigationState(NavigationState.welcome_shortcode_completed);
                     return(
                         <div className={"card p-0 bg-success text-white"}>
                             <div className={"card-header"}>
@@ -197,7 +204,7 @@ export default function AuthorizeShortcodeSession() {
                             </div>
                             <div className={"card-footer"}>
                                 <div className={"row mx-1"}>
-                                    <Link className={"btn btn-primary col me-1"} to={"/private"}>Navigiere in meinen Privatbereich</Link>
+                                    <Link className={"btn btn-primary col me-1"} to={"/private"} state={{navigationState: NavigationState.welcome_shortcode_completed}}>Navigiere in meinen Privatbereich</Link>
                                     <Link className={"btn btn-secondary col ms-1"} to={"/"}>Kehre zur Startseite zurück</Link>
                                 </div>
                             </div>

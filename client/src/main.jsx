@@ -44,6 +44,10 @@ const router = createBrowserRouter([
                 element: <Private />,
             },
             {
+                path: "private/:privateState",
+                element: <Private />,
+            },
+            {
                 path: "shortcodeLogin",
                 element: <ShortcodeLogin/>
             },
