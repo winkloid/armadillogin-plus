@@ -53,15 +53,15 @@ export default function Welcome() {
                             <Link to={"/shortcodeLogin/generateShortcode"} className={"btn " + ((currentNavigationState === NavigationState.welcome_login_completed) ? "btn-primary" : "btn-secondary")}>Gehe zur Code-Generierung</Link>
                         </div>
                     </div>
-                    <div className={"card p-0 col-lg mb-2 " + ((currentNavigationState === NavigationState.welcome_shortcode_generated) ? "border-primary" : "")}>
-                        <div className={"card-header text-white " + ((currentNavigationState === NavigationState.welcome_shortcode_generated) ? "bg-primary" : "bg-secondary")}>
+                    <div className={"card p-0 col-lg mb-2"}>
+                        <div className={"card-header text-white bg-secondary"}>
                             <h3 className={"card-title m-0"}>Zur Autorisierung der Code-Sitzung</h3>
                         </div>
                         <div className={"card-body"}>
                             <p className={"card-text"}>Wenn Sie bereits einen Code auf einem anderen Gerät generiert haben, können Sie den Kontozugriff für dieses Gerät hier autorisieren. Um sicherzustellen, dass Sie dazu tatsächlich berechtigt sind, durchlaufen Sie zuvor den Login-Prozess in Ihr Benutzerkonto mittels WebAuthn/FIDO2. Halten Sie also Ihren WebAuthn/FIDO2-Authenticator bereit!</p>
                         </div>
-                        <div className={"card-footer bg-opacity-25 " + ((currentNavigationState === NavigationState.welcome_shortcode_generated) ? "bg-primary" : "bg-secondary")}>
-                            <Link to={"/shortcode"} className={"btn " + ((currentNavigationState === NavigationState.welcome_shortcode_generated) ? "btn-primary" : "btn-secondary")}>Gehe zur Sitzungs-Autorisierung</Link>
+                        <div className={"card-footer bg-opacity-25 bg-secondary"}>
+                            <Link to={"/shortcode"} className={"btn btn-secondary"}>Gehe zur Sitzungs-Autorisierung</Link>
                         </div>
                     </div>
                 </div>

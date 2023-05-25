@@ -108,6 +108,21 @@ export default function Registration() {
                         Kontaktiere Server...
                     </button>
                     )}
+
+                    {browserSupportsWebAuthn()?
+                        (<div className={"alert alert-success"}>
+                            <div className={"row d-inline-flex"}>
+                                <div className={"col-1"}>🟢</div>
+                                <div className={"col-11"}>Sehr gut! Dieser Browser unterstützt FIDO2/WebAuthn!</div>
+                            </div>
+                        </div>) : (
+                        <div className={"alert alert-success"}>
+                            <div className={"row d-inline-flex"}>
+                                <div className={"col-1"}>🔴</div>
+                                <div className={"col-11"}>Bitte verwenden Sie einen anderen Browser. Dieser Browser unterstützt FIDO2/WebAuthn nicht. <strong>Sie können den Registrierungvorgang daher nicht starten.</strong></div>
+                            </div>
+                        </div>)
+                    }
                 </div>
                 <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
             </div>

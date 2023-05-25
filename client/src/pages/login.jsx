@@ -97,7 +97,7 @@ export default function Login() {
                         haben. Verwenden Sie anschließend Ihren FIDO2-/WebAuthn-Authenticator, um Zugang zu Ihrem Konto zu
                         erhalten. Durch die Daten, die auf Ihrem persönlichen Authenticator gespeichert sind, kann dieser
                         Ihre Identität dem System gegenüber bestätigen.</p>
-                    <div className={"input-group"}>
+                    <div className={"input-group mb-3"}>
                         <span className={"input-group-text"} id={"userName-addon"}>@</span>
                         <input value={userName}
                                onChange={(userNameChangeEvent) => setUserName(userNameChangeEvent.target.value)}
@@ -112,12 +112,24 @@ export default function Login() {
                                aria-label={"Benutzername"} aria-describedby={"userName-addon"}
                         />
                     </div>
-                </div>
-                <div className={"card-footer"}>
                     <button onClick={getAuthenticationOptions} type={"button"} disabled={!browserSupportsWebAuthn() || isLoading}
-                            className={"btn btn-primary"}>
+                            className={"btn btn-primary mb-3"}>
                         Bestätigen
                     </button>
+                    {browserSupportsWebAuthn()?
+                        (<div className={"alert alert-success"}>
+                            <div className={"row d-inline-flex"}>
+                                <div className={"col-1"}>🟢</div>
+                                <div className={"col-11"}>Sehr gut! Dieser Browser unterstützt FIDO2/WebAuthn!</div>
+                            </div>
+                        </div>) : (
+                            <div className={"alert alert-success"}>
+                                <div className={"row d-inline-flex"}>
+                                    <div className={"col-1"}>🔴</div>
+                                    <div className={"col-11"}>Bitte verwenden Sie einen anderen Browser. Dieser Browser unterstützt FIDO2/WebAuthn nicht. <strong>Sie können den Registrierungvorgang daher nicht starten.</strong></div>
+                                </div>
+                            </div>)
+                    }
                 </div>
                 <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
             </div>
