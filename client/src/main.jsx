@@ -40,11 +40,11 @@ const router = createBrowserRouter([
                 element: <Login />,
             },
             {
-                path: "private",
+                path: "private/:privateState",
                 element: <Private />,
             },
             {
-                path: "private/:privateState",
+                path: "private",
                 element: <Private />,
             },
             {

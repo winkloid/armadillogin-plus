@@ -1,11 +1,10 @@
 import AuthenticatorSettings from "../components/privatePageComponents/AuthenticatorSettingsComponent.jsx";
 import {useEffect, useState} from "react";
 import AccountSettings from "../components/privatePageComponents/AccountSettingsComponent.jsx";
-import {Link, useLocation, useOutletContext, useParams} from "react-router-dom";
+import {Link, useOutletContext, useParams} from "react-router-dom";
 import {ErrorState} from "../types/errorState.js";
 import ErrorComponent from "../components/ErrorComponent.jsx";
 import {NavigationState} from "../types/navigationState.js";
-import terminal from "virtual:terminal";
 
 export default function Private () {
     const [currentNavigationState, setCurrentNavigationState] = useOutletContext();

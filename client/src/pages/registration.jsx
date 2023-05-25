@@ -83,28 +83,31 @@ export default function Registration() {
                 <div className={"card-body"}>
                     <p>Bitte vergeben Sie hier einen Benutzernamen, den Sie später verwenden möchten, um Ihr Konto bei
                         ArmadilLogin PLUS aufzurufen.</p>
-                    <form>
-                        <div className={"input-group mb-3"}>
-                            <span className={"input-group-text"} id={"userName-addon"}>@</span>
-                            <input value={userName}
-                                   onChange={(userNameChangeEvent) => setUserName(userNameChangeEvent.target.value)}
-                                   type={"text"}
-                                   disabled={isLoading}
-                                   className={"form-control border-primary"} placeholder={"Benutzername"}
-                                   aria-label={"Benutzername"} aria-describedby={"userName-addon"}/>
-                        </div>
-                        {/* Show the button as disabled and with a loading animation only if data are currently fetched from the backend */}
-                        {!isLoading ? (
-                        <button onClick={getRegistrationOptions} type={"button"} disabled={!browserSupportsWebAuthn() || isLoading} className={"btn btn-primary mb-3"}>
-                            Bestätigen
-                        </button>
-                        ) : (
-                        <button type={"button"} disabled={true} className={"btn btn-primary mb-3"}>
-                            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            Kontaktiere Server...
-                        </button>
-                        )}
-                    </form>
+                    <div className={"input-group mb-3"}>
+                        <span className={"input-group-text"} id={"userName-addon"}>@</span>
+                        <input value={userName}
+                               onChange={(userNameChangeEvent) => setUserName(userNameChangeEvent.target.value)}
+                               onKeyUp={(keyEvent) => {
+                                   if (keyEvent.key === "Enter") {
+                                       getRegistrationOptions();
+                                   }
+                               }}
+                               type={"text"}
+                               disabled={isLoading}
+                               className={"form-control border-primary"} placeholder={"Benutzername"}
+                               aria-label={"Benutzername"} aria-describedby={"userName-addon"}/>
+                    </div>
+                    {/* Show the button as disabled and with a loading animation only if data are currently fetched from the backend */}
+                    {!isLoading ? (
+                    <button onClick={getRegistrationOptions} type={"button"} disabled={!browserSupportsWebAuthn() || isLoading} className={"btn btn-primary mb-3"}>
+                        Bestätigen
+                    </button>
+                    ) : (
+                    <button type={"button"} disabled={true} className={"btn btn-primary mb-3"}>
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Kontaktiere Server...
+                    </button>
+                    )}
                 </div>
                 <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
             </div>

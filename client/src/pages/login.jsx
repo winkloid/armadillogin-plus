@@ -101,6 +101,11 @@ export default function Login() {
                         <span className={"input-group-text"} id={"userName-addon"}>@</span>
                         <input value={userName}
                                onChange={(userNameChangeEvent) => setUserName(userNameChangeEvent.target.value)}
+                               onKeyUp={(keyEvent) => {
+                                   if (keyEvent.key === "Enter") {
+                                       getAuthenticationOptions();
+                                   }
+                               }}
                                type={"text"}
                                disabled={isLoading}
                                className={"form-control border-primary"} placeholder={"Benutzername"}
@@ -109,7 +114,7 @@ export default function Login() {
                     </div>
                 </div>
                 <div className={"card-footer"}>
-                    <button onClick={getAuthenticationOptions} type={"button"} disabled={!browserSupportsWebAuthn()}
+                    <button onClick={getAuthenticationOptions} type={"button"} disabled={!browserSupportsWebAuthn() || isLoading}
                             className={"btn btn-primary"}>
                         Bestätigen
                     </button>
