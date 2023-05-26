@@ -1,10 +1,6 @@
 import {ErrorState} from "../types/errorState.js";
-import Modal from 'react-modal';
 
-import ArmadilloginModalPortal from "./modals/ArmadilloginModalPortal.jsx";
-import {useState} from "react";
 import ArmadilloginModal from "./modals/ArmadilloginModal.jsx";
-Modal.setAppElement("#root");
 
 export default function ErrorComponent({ errorState, setErrorState, errorMessage}) {
     const handleModalClose = () => {

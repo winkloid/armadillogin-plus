@@ -1,4 +1,16 @@
 
+
+#root {
+    max-width: 1280px;
+}
+
+.navbar {
+    -webkit-box-shadow: 0px 6px 6px -2px rgba(0,95,80,0.14);
+    -moz-box-shadow: 0px 6px 6px -2px rgba(0,95,80,0.14);
+    box-shadow: 0px 6px 6px -2px rgba(0,95,80,0.14);
+    z-index: 999;
+}
+
 .armadillogin-modal {
     position: fixed;
     inset: 0; /* inset sets all 4 values (top right bottom left) much like how we set padding, margin etc., */
@@ -20,6 +32,37 @@
     align-items: center;
     justify-content: center;
 }
+
+@font-face {
+    font-family: 'Material Symbols Rounded';
+    font-style: normal;
+    font-weight: 400;
+    src: url("../src/assets/fonts/MaterialSymbolsRounded.woff2") format('woff2');
+}
+
+.material-symbols-rounded {
+    font-family: 'Material Symbols Rounded', serif;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -moz-font-feature-settings: 'liga';
+    -moz-osx-font-smoothing: grayscale;
+
+    vertical-align: middle;
+    line-height: 0 !important;
+    position: relative;
+    top: -1px;
+
+}
+
+
+
 
 .ReactModal__Overlay {
     opacity: 0;

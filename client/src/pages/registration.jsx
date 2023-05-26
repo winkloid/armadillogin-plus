@@ -1,11 +1,12 @@
-import {useEffect, useRef, useState} from "react";
-import {browserSupportsWebAuthn, startRegistration} from "@simplewebauthn/browser";
+import {useEffect, useState} from "react";
+import {browserSupportsWebAuthn} from "@simplewebauthn/browser";
 import axios from "axios";
-import terminal from "virtual:terminal";
 import ErrorComponent from "../components/ErrorComponent.jsx";
 import {ErrorState} from "../types/errorState.js";
 import RegistrationCompletion from "../components/RegistrationCompletion.jsx";
-import {Navigate} from "react-router-dom";
+import {useOutletContext} from "react-router-dom";
+import {NavigationState} from "../types/navigationState.js";
+import RegistrationSuccessfulComponent from "../components/RegistrationSuccessfulComponent.jsx";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -15,6 +16,8 @@ axios.defaults.validateStatus = function () {
 };
 
 export default function Registration() {
+    const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
+
     const [userName, setUserName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [fetchingRegistrationOptionsSuccess, setFetchingRegistrationOptionsSuccess] = useState(false);
@@ -22,6 +25,10 @@ export default function Registration() {
     const [errorState, setErrorState] = useState(ErrorState.success);
     const [currentError, setCurrentError] = useState("");
     const [registrationOptions, setRegistrationOptions] = useState({});
+
+    useEffect(() => {
+        setCurrentNavigationState(NavigationState.registration);
+    }, []);
 
     const getRegistrationOptions = async () => {
         setIsLoading(true);
@@ -63,27 +70,30 @@ export default function Registration() {
 
     if(!fetchingRegistrationOptionsSuccess) {
         return (
-            <>
-                <h1>Registrierung</h1>
-                <p>Bitte vergeben Sie hier einen Benutzernamen, den Sie später verwenden möchten, um Ihr Konto bei
-                    ArmadilLogin PLUS aufzurufen.</p>
-                {browserSupportsWebAuthn()?
-                    (<p className={"text-bg-success"}>Sehr gut! Dieser Browser unterstützt FIDO2/WebAuthn!</p>)
-                    : (<p className={"text-bg-danger"}>Bitte verwenden Sie einen anderen Browser. Dieser Browser unterstützt FIDO2/WebAuthn nicht.</p>)}
-                <form>
+            <div className={"card p-0"}>
+                <div className={"card-header"}>
+                    <h1 className={"display-5 m-0"}>Registrierung</h1>
+                </div>
+                <div className={"card-body"}>
+                    <p>Bitte vergeben Sie hier einen Benutzernamen, den Sie später verwenden möchten, um Ihr Konto bei
+                        ArmadilLogin PLUS aufzurufen.</p>
                     <div className={"input-group mb-3"}>
                         <span className={"input-group-text"} id={"userName-addon"}>@</span>
                         <input value={userName}
                                onChange={(userNameChangeEvent) => setUserName(userNameChangeEvent.target.value)}
+                               onKeyUp={(keyEvent) => {
+                                   if (keyEvent.key === "Enter") {
+                                       getRegistrationOptions();
+                                   }
+                               }}
                                type={"text"}
                                disabled={isLoading}
-                               className={"form-control"} placeholder={"Benutzername"}
+                               className={"form-control border-primary"} placeholder={"Benutzername"}
                                aria-label={"Benutzername"} aria-describedby={"userName-addon"}/>
                     </div>
-
                     {/* Show the button as disabled and with a loading animation only if data are currently fetched from the backend */}
                     {!isLoading ? (
-                    <button onClick={getRegistrationOptions} type={"button"} disabled={!browserSupportsWebAuthn()} className={"btn btn-primary mb-3"}>
+                    <button onClick={getRegistrationOptions} type={"button"} disabled={!browserSupportsWebAuthn() || isLoading} className={"btn btn-primary mb-3"}>
                         Bestätigen
                     </button>
                     ) : (
@@ -92,15 +102,30 @@ export default function Registration() {
                         Kontaktiere Server...
                     </button>
                     )}
-                </form>
+
+                    {browserSupportsWebAuthn()?
+                        (<div className={"alert alert-success"}>
+                            <div className={"row d-inline-flex"}>
+                                <div className={"col-1"}>🟢</div>
+                                <div className={"col-11"}>Sehr gut! Dieser Browser unterstützt FIDO2/WebAuthn!</div>
+                            </div>
+                        </div>) : (
+                        <div className={"alert alert-success"}>
+                            <div className={"row d-inline-flex"}>
+                                <div className={"col-1"}>🔴</div>
+                                <div className={"col-11"}>Bitte verwenden Sie einen anderen Browser. Dieser Browser unterstützt FIDO2/WebAuthn nicht. <strong>Sie können den Registrierungvorgang daher nicht starten.</strong></div>
+                            </div>
+                        </div>)
+                    }
+                </div>
                 <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
-            </>
+            </div>
         )
     } else if(fetchingRegistrationOptionsSuccess && !completeRegistrationSuccess) {
         return(
             <RegistrationCompletion registrationOptions={registrationOptions} setRegistrationSuccess={setCompleteRegistrationSuccess} />
         );
     } else {
-        return(<Navigate to={"/private"} />);
+        return(<RegistrationSuccessfulComponent />);
     }
 }
