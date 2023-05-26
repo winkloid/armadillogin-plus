@@ -1,11 +1,12 @@
 import {NavigationState} from "../../types/navigationState.js";
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import terminal from "virtual:terminal";
 import {all} from "axios";
 
 export default function BottomNavBar({currentNavigationState, setCurrentNavigationState}) {
     const allNavigationStates = Object.getOwnPropertyNames(NavigationState);
     const navigate = useNavigate();
+    const {pathname} = useLocation();
     let currentNavigationStateKey = Object.keys(NavigationState).find(key => NavigationState[key] === currentNavigationState);
 
     const getNavigationStateInformation = (navigationState) => {
@@ -77,10 +78,7 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
         }
     });
 
-
     return(
-        <>
-
         <nav className={"navbar pt-0 navbar-dark bg-dark bg-gradient fixed-bottom"}>
             <div className={"container-fluid p-0 mb-2"}>
                 <div className={"container-fluid p-0 mt-0"}>
@@ -95,8 +93,11 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
                 </div>
             </div>
             <div className={"container"}>
-                <button className={"btn btn-outline-light"} type={"button"} aria-hidden={(allNavigationStates.indexOf(currentNavigationStateKey) === 0)} hidden={(allNavigationStates.indexOf(currentNavigationStateKey) === 0)} onClick={handleNavigationBack}>
+                <button className={"btn btn-outline-light"} type={"button"} aria-hidden={(allNavigationStates.indexOf(currentNavigationStateKey) === 0) || pathname === "/about"} hidden={(allNavigationStates.indexOf(currentNavigationStateKey) === 0) || pathname === "/about"} onClick={handleNavigationBack}>
                     <i className={"material-symbols-rounded"}>arrow_back_ios</i><span>Zurück - {getNavigationStateInformation(NavigationState[allNavigationStates[allNavigationStates.indexOf(currentNavigationStateKey) - 1]]).stateLabel}</span></button>
+                <Link to={getNavigationStateInformation(currentNavigationState).stateHref} className={"btn btn-outline-light"} type={"button"} aria-hidden={pathname !== "/about"} hidden={pathname !== "/about"}>
+                    <i className={"material-symbols-rounded"}>arrow_back_ios</i><span>Zurück - {getNavigationStateInformation(currentNavigationState).stateLabel}</span>
+                </Link>
                 <button className="navbar-toggler"
                         type="button"
                         data-bs-toggle="collapse"
@@ -113,7 +114,9 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
                         {currentNavbar}
 
                         <li className={"nav-item mt-5"}>
-                                <Link to={"/about"} className={"btn btn-outline-light opacity-75 col"}><i className={"material-symbols-rounded"}>info</i> <span>Über ArmadilLogin PLUS</span></Link>
+                                <Link to={"/about"} className={"btn btn-outline-light opacity-75"} hidden={pathname === "/about"}>
+                                    <i className={"material-symbols-rounded"}>info</i> <span>Über ArmadilLogin PLUS</span>
+                                </Link>
                         </li>
                         <li className={"nav-item " + ((allNavigationStates.indexOf(currentNavigationStateKey) === 0) ? "" : "align-self-end")}>
                             <button className="btn btn-outline-danger mt-2"
@@ -130,6 +133,5 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
                 </div>
             </div>
         </nav>
-        </>
     );
 }
