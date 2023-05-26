@@ -18,8 +18,8 @@ export default function ShortcodeInput() {
     const [shortcodeConfirmed, setShortcodeConfirmed] = useState(false);
 
     useEffect(() => {
-        setCurrentNavigationState(NavigationState.shortcodeAuthorization.shortcodeInput);
-    })
+        setCurrentNavigationState(NavigationState.shortcodeAuthorization_shortcodeInput);
+    }, []);
 
     if(!shortcodeConfirmed) {
         return (

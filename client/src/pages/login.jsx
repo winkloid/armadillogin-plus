@@ -29,23 +29,11 @@ export default function Login() {
 
     useEffect(() => {
         if(state?.isShortcodeLogin) {
-            if(!fetchingAuthenticationOptionsSuccess) {
-                setCurrentNavigationState(NavigationState.shortcodeAuthorization.authentication_userNameInput);
-            } else if(fetchingAuthenticationOptionsSuccess && !completeAuthenticationSuccess) {
-                setCurrentNavigationState(NavigationState.shortcodeAuthorization.authentication_authenticatorAuthentication);
-            } else {
-                setCurrentNavigationState(NavigationState.shortcodeAuthorization.authorizationScreen);
-            }
+            setCurrentNavigationState(NavigationState.shortcodeAuthorization_shortcodeInput);
         } else {
-            if(!fetchingAuthenticationOptionsSuccess) {
-                setCurrentNavigationState(NavigationState.login.userNameInput);
-            } else if(fetchingAuthenticationOptionsSuccess && !completeAuthenticationSuccess) {
-                setCurrentNavigationState(NavigationState.login.authenticatorAuthentication);
-            } else {
-                setCurrentNavigationState(NavigationState.private);
-            }
+            setCurrentNavigationState(NavigationState.login);
         }
-    })
+    }, []);
 
     const getAuthenticationOptions = async () => {
         setIsLoading(true);

@@ -1,6 +1,14 @@
-import {Link} from "react-router-dom";
+import {Link, useLocation, useOutletContext} from "react-router-dom";
+import {useEffect} from "react";
+import {NavigationState} from "../types/navigationState.js";
 
 export default function RegistrationSuccessfulComponent() {
+    const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
+
+    useEffect(() => {
+        setCurrentNavigationState(NavigationState.welcome_registration_completed);
+    }, []);
+
     return(
         <div className={"card p-0"}>
             <div className={"card-header bg-success bg-gradient text-white"}>

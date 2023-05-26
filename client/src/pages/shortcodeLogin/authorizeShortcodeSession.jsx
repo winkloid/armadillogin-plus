@@ -18,8 +18,8 @@ export default function AuthorizeShortcodeSession() {
     const [currentError, setCurrentError] = useState("");
     const [errorState, setErrorState] = useState(ErrorState.success);
     const [sessionInformation, setSessionInformation] = useState(null);
-    const [currentShortcode, setCurrentShortcode] = useState((state.shortcode) ? state.shortcode : "");
-    const [lastConfirmedShortcode, setLastConfirmedShortcode] = useState((state.shortcode) ? state.shortcode : "");
+    const [currentShortcode, setCurrentShortcode] = useState((state?.shortcode) ? state.shortcode : "");
+    const [lastConfirmedShortcode, setLastConfirmedShortcode] = useState((state?.shortcode) ? state.shortcode : "");
     const [shortcodeEditActive, setShortcodeEditActive] = useState(false);
 
     const [currentlySelectedChallengeResponse, setCurrentlySelectedChallengeResponse] = useState(null);
@@ -35,8 +35,8 @@ export default function AuthorizeShortcodeSession() {
     }, []);
 
     useEffect(() => {
-        setcurrentNavigationState(NavigationState.shortcodeAuthorization.authorizationScreen);
-    })
+        setcurrentNavigationState(NavigationState.shortcodeAuthorization_authorizationScreen);
+    }, []);
 
     const fetchShortcodeSessionInformation = async () => {
         setIsLoading(true);

@@ -27,14 +27,8 @@ export default function Registration() {
     const [registrationOptions, setRegistrationOptions] = useState({});
 
     useEffect(() => {
-        if(!fetchingRegistrationOptionsSuccess) {
-            setCurrentNavigationState(NavigationState.registration.userNameInput);
-        } else if(fetchingRegistrationOptionsSuccess && !completeRegistrationSuccess) {
-            setCurrentNavigationState(NavigationState.registration.authenticatorRegistration);
-        } else {
-            setCurrentNavigationState(NavigationState.welcome_registration_completed);
-        }
-    });
+        setCurrentNavigationState(NavigationState.registration);
+    }, []);
 
     const getRegistrationOptions = async () => {
         setIsLoading(true);

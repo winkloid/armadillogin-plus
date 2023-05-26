@@ -15,10 +15,6 @@ export default function RegistrationCompletion({registrationOptions, setRegistra
     const [isLoading, setIsLoading] = useState(false);
     const [customAuthenticatorName, setCustomAuthenticatorName] = useState("");
 
-    useEffect(() => {
-        setCurrentNavigationState(NavigationState.registration.authenticatorRegistration);
-    })
-
     const completeRegistration = async () => {
         setIsLoading(true);
         // request response from the WebAuthn authenticator for registration

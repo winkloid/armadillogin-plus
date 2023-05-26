@@ -33,15 +33,16 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
         } else if(NavigationState[navigationStateName] === NavigationState.shortcodeGeneration) {
             currentHref = "/shortcodeLogin/generateShortcode";
             currentLabel = "Code-Generierung";
-        } else if(NavigationState[navigationStateName] === NavigationState.shortcodeAuthorization) {
+        } else if(NavigationState[navigationStateName] === NavigationState.shortcodeAuthorization_shortcodeInput) {
             currentHref = "/shortcode";
-            currentLabel = "Code-Autorisierung";
+            currentLabel = "Code-Eingabe";
+        } else if(NavigationState[navigationStateName] === NavigationState.shortcodeAuthorization_authorizationScreen) {
+            currentHref = "/shortcodeLogin/authorize";
+            currentLabel = "Shortcode-Autorisierung";
         }
         if((typeof NavigationState[navigationStateName]) === "symbol") {
-            terminal.log(allNavigationStates.indexOf(currentNavigationStateKey));
-            terminal.log(allNavigationStates.indexOf(navigationStateName));
             return(
-                <li className={"nav-item"}>
+                <li className={"nav-item"} key={navigationStateName}>
                     {
                         /*Create Link to the corresponding path. If the current navigation state is the same as the navigation state of the current mapping, we mark the navigation item as active.
                         * If the key of the current navigation state comes before the key of the state of the current mapping, then we enable the link, else disable it.
@@ -57,7 +58,21 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
 
 
     return(
-        <nav className={"navbar navbar-expand-lg navbar-dark bg-dark bg-gradient fixed-bottom"}>
+        <>
+
+        <nav className={"navbar pt-0 navbar-dark bg-dark bg-gradient fixed-bottom"}>
+            <div className={"container-fluid p-0 mb-2"}>
+                <div className={"container-fluid p-0 mt-0"}>
+                    <div className="progress"
+                         style={{height: "5px", borderRadius: 0}}
+                         role="progressbar"
+                         aria-label="Studienfortschritt, Praxisteil"
+                         aria-valuenow={(allNavigationStates.indexOf(currentNavigationStateKey) / allNavigationStates.length * 100)}
+                         aria-valuemin="0" aria-valuemax="100">
+                        <div className="progress-bar" style={{width: (allNavigationStates.indexOf(currentNavigationStateKey) / allNavigationStates.length * 100) + "%"}}></div>
+                    </div>
+                </div>
+            </div>
             <div className={"container"}>
                 <button className={"btn btn-outline-light"} type={"button"}>Zurück</button>
                 <button className="navbar-toggler"
@@ -70,6 +85,7 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
                     <span className="navbar-toggler-icon"></span>
                 </button>
 
+
                 <div className="collapse navbar-collapse" id="navigationNavbarDropUp">
                     <ul className="navbar-nav">
                         {currentNavbar}
@@ -77,5 +93,6 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
                 </div>
             </div>
         </nav>
+        </>
     );
 }
