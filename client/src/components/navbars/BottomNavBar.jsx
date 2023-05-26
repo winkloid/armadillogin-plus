@@ -1,45 +1,66 @@
 import {NavigationState} from "../../types/navigationState.js";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import terminal from "virtual:terminal";
 import {all} from "axios";
 
 export default function BottomNavBar({currentNavigationState, setCurrentNavigationState}) {
     const allNavigationStates = Object.getOwnPropertyNames(NavigationState);
+    const navigate = useNavigate();
     let currentNavigationStateKey = Object.keys(NavigationState).find(key => NavigationState[key] === currentNavigationState);
-    const currentNavbar = allNavigationStates.map((navigationStateName) => {
-        let currentHref = "";
-        let currentLabel = "";
-        if(NavigationState[navigationStateName] === NavigationState.welcome_init) {
-            currentHref = "/";
-            currentLabel = "Startseite";
-        } else if(NavigationState[navigationStateName] === NavigationState.welcome_registration_completed) {
-            currentHref = "/";
-            currentLabel = "Startseite (nach Registrierung)"
-        } else if(NavigationState[navigationStateName] === NavigationState.welcome_login_completed) {
-            currentHref = "/";
-            currentLabel = "Startseite (nach Login)";
-        } else if(NavigationState[navigationStateName] === NavigationState.welcome_shortcode_completed) {
-            currentHref = "/";
-            currentLabel = "Startseite (nach Shortcode)";
-        } else if(NavigationState[navigationStateName] === NavigationState.registration){
-            currentHref = "/registration";
-            currentLabel = "Registrierung";
-        } else if(NavigationState[navigationStateName] === NavigationState.login) {
-            currentHref = "/login";
-            currentLabel = "FIDO2-Login";
-        } else if(NavigationState[navigationStateName] === NavigationState.private) {
-            currentHref = "/private";
-            currentLabel = "Privatbereich";
-        } else if(NavigationState[navigationStateName] === NavigationState.shortcodeGeneration) {
-            currentHref = "/shortcodeLogin/generateShortcode";
-            currentLabel = "Code-Generierung";
-        } else if(NavigationState[navigationStateName] === NavigationState.shortcodeAuthorization_shortcodeInput) {
-            currentHref = "/shortcode";
-            currentLabel = "Code-Eingabe";
-        } else if(NavigationState[navigationStateName] === NavigationState.shortcodeAuthorization_authorizationScreen) {
-            currentHref = "/shortcodeLogin/authorize";
-            currentLabel = "Shortcode-Autorisierung";
+
+    const getNavigationStateInformation = (navigationState) => {
+        let stateHref = "";
+        let stateLabel = "";
+        if(navigationState === NavigationState.welcome_init) {
+            stateHref = "/";
+            stateLabel = "Startseite";
+        } else if(navigationState === NavigationState.welcome_registration_completed) {
+            stateHref = "/";
+            stateLabel = "Startseite (nach Registrierung)"
+        } else if(navigationState === NavigationState.welcome_login_completed) {
+            stateHref = "/";
+            stateLabel = "Startseite (nach Login)";
+        } else if(navigationState === NavigationState.welcome_shortcode_completed) {
+            stateHref = "/";
+            stateLabel = "Startseite (nach Shortcode)";
+        } else if(navigationState === NavigationState.registration){
+            stateHref = "/registration";
+            stateLabel = "Registrierung";
+        } else if(navigationState === NavigationState.login) {
+            stateHref = "/login";
+            stateLabel = "FIDO2-Login";
+        } else if(navigationState === NavigationState.private) {
+            stateHref = "/private";
+            stateLabel = "Privatbereich";
+        } else if(navigationState === NavigationState.shortcodeGeneration) {
+            stateHref = "/shortcodeLogin/generateShortcode";
+            stateLabel = "Code-Generierung";
+        } else if(navigationState === NavigationState.shortcodeAuthorization_shortcodeInput) {
+            stateHref = "/shortcode";
+            stateLabel = "Code-Eingabe";
+        } else if(navigationState === NavigationState.shortcodeAuthorization_authorizationScreen) {
+            stateHref = "/shortcodeLogin/authorize";
+            stateLabel = "Shortcode-Autorisierung";
         }
+
+        return {
+            stateHref: stateHref,
+            stateLabel: stateLabel
+        }
+    }
+    const handleNavigationBack = () => {
+        const previousNavigationStateName = allNavigationStates[allNavigationStates.indexOf(currentNavigationStateKey) - 1];
+
+        // fetch information of previous navigation state
+        const previousNavigationStateInformation = getNavigationStateInformation(NavigationState[previousNavigationStateName]);
+        setCurrentNavigationState(NavigationState[previousNavigationStateName]);
+        navigate(previousNavigationStateInformation.stateHref);
+    }
+
+    const currentNavbar = allNavigationStates.map((navigationStateName) => {
+        let navigationStateKey = NavigationState[navigationStateName];
+        let navigationStateInformation = getNavigationStateInformation(navigationStateKey);
+
         if((typeof NavigationState[navigationStateName]) === "symbol") {
             return(
                 <li className={"nav-item"} key={navigationStateName}>
@@ -48,9 +69,9 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
                         * If the key of the current navigation state comes before the key of the state of the current mapping, then we enable the link, else disable it.
                         * */
                     }
-                    <Link to={currentHref} className={"nav-link " + ((currentNavigationState === NavigationState[navigationStateName]) ? "active " : "") + (allNavigationStates.indexOf(currentNavigationStateKey) >= allNavigationStates.indexOf(navigationStateName) ? "" : "disabled")} aria-current={(currentNavigationState === NavigationState[navigationStateName]) ? "page" : "false"} onClick={() => {
+                    <Link to={navigationStateInformation.stateHref} className={"nav-link " + ((currentNavigationState === NavigationState[navigationStateName]) ? "active " : "") + (allNavigationStates.indexOf(currentNavigationStateKey) >= allNavigationStates.indexOf(navigationStateName) ? "" : "disabled")} aria-current={(currentNavigationState === NavigationState[navigationStateName]) ? "page" : "false"} onClick={() => {
                         setCurrentNavigationState(NavigationState[navigationStateName]);
-                    }}>{currentLabel}</Link>
+                    }}>{navigationStateInformation.stateLabel}</Link>
                 </li>
             );
         }
@@ -74,7 +95,8 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
                 </div>
             </div>
             <div className={"container"}>
-                <button className={"btn btn-outline-light"} type={"button"}>Zurück</button>
+                <button className={"btn btn-outline-light"} type={"button"} aria-hidden={(allNavigationStates.indexOf(currentNavigationStateKey) === 0)} hidden={(allNavigationStates.indexOf(currentNavigationStateKey) === 0)} onClick={handleNavigationBack}>
+                    <i className={"material-symbols-rounded"}>arrow_back_ios</i><span>Zurück - {getNavigationStateInformation(NavigationState[allNavigationStates[allNavigationStates.indexOf(currentNavigationStateKey) - 1]]).stateLabel}</span></button>
                 <button className="navbar-toggler"
                         type="button"
                         data-bs-toggle="collapse"
@@ -89,6 +111,21 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
                 <div className="collapse navbar-collapse" id="navigationNavbarDropUp">
                     <ul className="navbar-nav">
                         {currentNavbar}
+
+                        <li className={"nav-item mt-5"}>
+                                <Link to={"/about"} className={"btn btn-outline-light opacity-75 col"}><i className={"material-symbols-rounded"}>info</i> <span>Über ArmadilLogin PLUS</span></Link>
+                        </li>
+                        <li className={"nav-item " + ((allNavigationStates.indexOf(currentNavigationStateKey) === 0) ? "" : "align-self-end")}>
+                            <button className="btn btn-outline-danger mt-2"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#navigationNavbarDropUp"
+                                    aria-controls="navigationNavbarDropUp"
+                                    aria-expanded="false"
+                                    aria-label="Navigationsmenü anzeigen/ausblenden">
+                                <i className={"material-symbols-rounded "}>close</i> <span>Schließe Navigationsmenü</span>
+                            </button>
+                        </li>
                     </ul>
                 </div>
             </div>
