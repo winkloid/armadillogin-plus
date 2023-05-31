@@ -1,5 +1,8 @@
 require('dotenv').config();
 const express = require("express");
+const http = require("http");
+const https = require("https");
+const fs = require("fs");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const mongoose = require("mongoose");
@@ -9,10 +12,11 @@ const account = require("./routes/account.routes");
 const shortcodeLogin = require("./routes/shortcodeLogin.routes");
 
 const app = express();
-const port = 5000;
+const httpPort = 5000;
+const httpsPort = 5001;
 let corsOptions = {
     credentials: true,
-    origin: 'http://' + process.env.rpId + ":" + process.env.clientPort
+    origin: ['http://' + process.env.rpId + ":" + process.env.clientPort, "http://192.168.100.25:5173", "https://armadillogin.winkloid.de:5173"]
 }
 
 mongoose.connect(process.env.MONGODB_BASE_STRING, {useNewUrlParser:true,useUnifiedTopology:true,directConnection: true})
@@ -53,6 +57,17 @@ app.use("/api/webauthn", webauthn);
 app.use("/api/account", account);
 app.use("/api/shortcodeLogin", shortcodeLogin);
 
-app.listen(port, () => {
-    console.log("Express-Server gestartet: localhost:" + port);
+const sslCredentials = {
+    key: fs.readFileSync("./armadillogin.winkloid.de.key"),
+    cert: fs.readFileSync("./armadillogin.winkloid.de.crt")
+}
+const httpServer = http.createServer(app);
+const httpsServer = https.createServer(sslCredentials, app);
+
+httpServer.listen(httpPort, () => {
+    console.log("Express-HTTP-Server gestartet: localhost:" + httpPort);
+});
+
+httpsServer.listen(httpsPort, () => {
+    console.log("Express-HTTPS-Server gestartet: localhost:" + httpsPort);
 });

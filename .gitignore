@@ -23,6 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
+# Private SSL information
+*.key
+*.crt
+
 # misc
 .DS_Store
 .env

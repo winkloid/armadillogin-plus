@@ -51,7 +51,7 @@ export default function AuthenticationCompletion ( {authenticationOptions, setAu
     }
 
     return (
-        <div className={"card p-0"}>
+        <div className={"card p-0 mb-5"}>
             <div className={"card-header"}>
                 <h1 className={"display-5 m-0"}>Login mit Ihrem FIDO2/WebAuthn-Authenticator</h1>
             </div>

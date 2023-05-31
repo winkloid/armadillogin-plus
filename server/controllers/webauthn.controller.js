@@ -5,7 +5,7 @@ const UserModel = require("../models/user.model");
 const WebAuthnAuthenticatorModel = require("../models/webauthn_authenticator.model");
 const rpName = "ArmadilLogin PLUS";
 const rpId = process.env.rpId; // domain name
-const origin = "http://" + rpId + ":" + process.env.clientPort;
+const origin = "https://" + rpId + ":" + process.env.clientPort;
 const {
     generateRegistrationOptions,
     verifyRegistrationResponse,

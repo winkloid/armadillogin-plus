@@ -64,7 +64,7 @@ export default function RegistrationCompletion({registrationOptions, setRegistra
         }
     }
     return(
-        <div className={"card p-0"}>
+        <div className={"card p-0 mb-5"}>
             <div className={"card-header"}>
                 <h1 className={"display-5"}>Registrierung Ihres FIDO2/WebAuthn-Authenticators</h1>
             </div>
