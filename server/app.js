@@ -7,9 +7,11 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const passport = require("passport");
 const webauthn = require("./routes/webauthn.routes");
 const account = require("./routes/account.routes");
 const shortcodeLogin = require("./routes/shortcodeLogin.routes");
+const eidSaml = require("./routes/eid-saml.routes");
 
 const app = express();
 const httpPort = 5000;
@@ -53,9 +55,13 @@ app.use(session({
     })
 }));
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use("/api/webauthn", webauthn);
 app.use("/api/account", account);
 app.use("/api/shortcodeLogin", shortcodeLogin);
+app.use("/api/eid-saml", eidSaml);
 
 const sslCredentials = {
     key: fs.readFileSync("./armadillogin.winkloid.de.key"),
