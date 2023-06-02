@@ -21,6 +21,7 @@ import ShortcodeInput from "./pages/shortcodeLogin/shortcodeInput.jsx";
 import GenerateShortcode from "./pages/shortcodeLogin/generateShortcode.jsx";
 import AuthorizeShortcodeSession from "./pages/shortcodeLogin/authorizeShortcodeSession.jsx";
 import About from "./pages/about.jsx";
+import EIdLogin from "./pages/private_eIdLogin/eIdLogin.jsx";
 
 const router = createBrowserRouter([
     {
@@ -71,6 +72,10 @@ const router = createBrowserRouter([
             {
                 path: "about",
                 element: <About />
+            },
+            {
+                path: "/eIdLogin",
+                element: <EIdLogin/>
             }
         ]
     },

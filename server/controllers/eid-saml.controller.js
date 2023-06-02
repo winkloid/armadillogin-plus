@@ -15,8 +15,8 @@ const getMetadata = (req, res) => {
 }
 
 const getMainpage = (req, res) => {
-    if(req.isAuthenticated) {
-        return res.status(200).send("Authentifiziert unter dem Pseudonym " + req.session?.passport?.user["http://www.skidentity.de/att/eIdentifier"]);
+    if(req.isAuthenticated()) {
+        return res.status(200).send("Authentifiziert unter dem Pseudonym " + req.user.eIdentifier);
     } else {
         return res.status(403).send("Nicht authentifiziert");
     }

@@ -56,7 +56,6 @@ app.use(session({
 }));
 
 app.use(passport.initialize());
-app.use(passport.session());
 
 app.use("/api/webauthn", webauthn);
 app.use("/api/account", account);
