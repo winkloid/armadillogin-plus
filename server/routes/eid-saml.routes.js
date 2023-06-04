@@ -1,69 +1,38 @@
 const express = require("express");
 const router = express.Router();
-const passport = require("passport");
-const saml = require("passport-saml");
 const fs = require("fs");
 const {
-    getMetadata, getMainpage
+    getMetadata, samlLogin, samlCallback, getMainpage, assertSaml
 } = require("../controllers/eid-saml.controller");
 const {isAuthenticatedMiddleware} = require("../middleware/isAuthenticatedMiddleware");
-const config = require("../config/config");
-const UserModel = require("../models/user.model")
 
-// Passport related configuration
-const samlStrategy = new saml.Strategy(
-    config.passport.saml,
-    function (profile, done) {
-        try {
-            return done(null, profile);
-        } catch(error) {
-            return done(null, false, "Fehler bei der Anmeldung mittels Personalausweis. Folgender Fehler ist aufgetreten: \n" + error);
-        }
-    }
-);
-passport.serializeUser((user, done) => {
-    process.nextTick(function() {
-        return done(null, {
-            eIdentifier: user.nameID,
-            issuer: user.attributes["http://www.skidentity.de/att/IDIssuer"]
-        });
-    });
-});
-
-passport.deserializeUser((user, done) => {
-    process.nextTick(function() {
-        return done(null, user);
-    })
-});
-
-passport.use("samlStrategy", samlStrategy);
 
 
 router.get("/", getMainpage);
 
 router.get("/metadata", getMetadata);
 
-router.get("/login",
-    passport.authenticate("samlStrategy", {
-        failureRedirect: "/api/eid-saml/login",
-        successRedirect: "/api/eid-saml/",
-        session: false
-    })
-);
+router.get("/login", samlLogin);
+router.post("/callback", samlCallback);
+router.post("/assert", assertSaml);
 
-router.post("/callback", function(req, res, next) {
+
+/*
+* function(req, res, next) {
         passport.authenticate("samlStrategy", {
             failureRedirect: "/api/eid-saml/login",
-            session: false
         }, async function (err, user, info) {
             console.log("User: " + user);
         if(err) {
             res.status(500).send("<h1>Interner Server Fehler</h1>");
         } else {
-            const userName = req.session.userName;
-            const userId = req.session.userId;
+            console.log(user.req);
+            console.log(user[0].session);
+            const userName = user.req.session.userName;
+            const userId = user.req.session.userId;
+            const isAuthenticated = user.req.session.isAuthenticated
             const eIdentifier = user.eIdentifier;
-            if (req.session?.isAuthenticated && req.session?.userName && req.session?.userId) {
+            if (isAuthenticated && userName && userId) {
                 let eIdentifierAdditionResponse = await UserModel.updateOne({
                     userName: userName,
                     _id: userId
@@ -96,7 +65,6 @@ router.post("/callback", function(req, res, next) {
             req.session.userId = userId;
             res.redirect("https://armadillogin.winkloid.de:5173/private");
         }
-    })(req, res, next);
-});
+    })(req, res, next);*/
 
 module.exports = router;
