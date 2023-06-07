@@ -11,7 +11,7 @@ axios.defaults.validateStatus = function () {
     return true;
 };
 
-export default function EIdLogin() {
+export default function EIdMainPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [currentError, setCurrentError] = useState("");
     const [errorState, setErrorState] = useState(ErrorState.success);

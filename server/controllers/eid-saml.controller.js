@@ -1,5 +1,6 @@
 const fs = require("fs");
 const saml2 = require("saml2-js");
+const UserModel = require("../models/user.model");
 
 const samlSpOptions = {
     assert_endpoint: process.env.BACKEND_BASE_URL + "/api/eid-saml/callback",
@@ -29,7 +30,6 @@ const getMetadata = (req, res) => {
 }
 
 const samlLogin = (req, res) => {
-    console.log(req.session);
     armadilLoginSp.create_login_request_url(eIdIdp, {}, (err, login_url, request_id) => {
         if(err != null) {
             return res.status(500).send("Interner Server Fehler bei der Weiterleitung zum Ausweis-Login-Dienst");
@@ -39,7 +39,6 @@ const samlLogin = (req, res) => {
 }
 
 const samlCallback = (req, res) => {
-    console.log(req.session);
     let options = {
         request_body: req.body,
         require_session_index: false
@@ -54,11 +53,8 @@ const samlCallback = (req, res) => {
 }
 
 const assertSaml = (req, res) => {
-    console.log(req.session);
-    console.log(req.body);
     let samlOptions = null;
     if (req.body) {
-        console.log(JSON.parse(unescape(req.body?.samlOptions)));
         samlOptions = JSON.parse(unescape(req.body?.samlOptions))
     } else {
         return res.status(400).send("Fehler: Keine Antwort vom Ausweis-Login-Dienst erkannt");
@@ -67,19 +63,43 @@ const assertSaml = (req, res) => {
             if (err != null) {
                 return res.status(500).send("Interner Server Fehler beim Überprüfen der Antwort desAusweis-Anmelde-Dienstes: " + err);
             } else {
-                req.session.eIdentifier = saml_response.user.name_id;
-                req.session.eIdentifierIssuer = saml_response.user.attributes["http://www.skidentity.de/att/IDIssuer"];
-                return res.status(200).send("Assertion ausgelöst");
+                if(req.session.isAuthenticated && req.session.userId && req.session.userName) {
+                    req.session.eIdentifier = saml_response.user.name_id;
+                    req.session.eIdentifierIssuer = saml_response.user.attributes["http://www.skidentity.de/att/IDIssuer"];
+                    return res.status(200).redirect(process.env.FRONTEND_BASE_URL + "/eId/registration");
+                }
             }
         }
     );
 }
 
-const getMainpage = (req, res) => {
-    if(req.isAuthenticated()) {
-        return res.status(200).send("Authentifiziert unter dem Pseudonym " + req.user.eIdentifier);
+const linkEIdToAccount = async (req, res) => {
+    if(!req.session.eIdentifier) {
+        return res.status(400).send("Mit Ihrer aktuellen Sitzung ist noch kein Ausweis verknüpft. Bitte stellen Sie sicher, dass Sie zunächst den Ausweis-Login-Prozess abschließen, bevor Sie fortfahren.");
+    }
+
+    let linkEIdResponse = await UserModel.updateOne({
+        _id: req.session.userId,
+        userName: req.session.userName,
+        isRegistered: true,
+    }, {
+        $set: {
+            eIdentifier: req.session.eIdentifier
+        }
+    }).then((response) => {
+        return {success: 1, content: response};
+    }).catch((error) => {
+        return {success: 0, content: error};
+    });
+
+    if (linkEIdResponse.success) {
+        if(linkEIdResponse.content.modifiedCount) {
+            return res.status(200).send("Hinzufügen des Ausweises zu Ihrem Benutzerkonto war erfolgreich.");
+        } else {
+            return res.status(404).send("Das in der Anfrage angegebene Benutzerkonto konnte nicht gefunden oder der verwendete Ausweis ist bereits mit dem Konto verknüpft. Der Ausweis konnte dem Konto demnach nicht neu hinzugefügt werden.");
+        }
     } else {
-        return res.status(403).send("Nicht authentifiziert");
+        return res.status(500).send("Interner Server Fehler beim Verknüpfen des Ausweises mit Ihrem Benutzerkonto in der Benutzerdatenbank");
     }
 }
 
@@ -88,5 +108,5 @@ module.exports = {
     samlLogin,
     samlCallback,
     assertSaml,
-    getMainpage
+    linkEIdToAccount
 }

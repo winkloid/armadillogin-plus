@@ -4,10 +4,10 @@ const isAuthenticatedMiddleware = (req, res, next) => {
             next();
         }
         else {
-            return res.status(401).send("Nicht autorisiert. sie haben den Login-Prozess noch nicht erfolgreich abgeschlossen.");
+            return res.status(401).send("Nicht autorisiert. Sie haben den Login-Prozess noch nicht erfolgreich abgeschlossen oder die maximale Login-Zeit bereits überschritten. Bitte loggen Sie sich ein, bevor Sie fortfahren.");
         }
     } else {
-        return res.status(401).send("Nicht autorisiert, bitte schließen Sie zunäcsht den Login-Prozess ab.");
+        return res.status(401).send("Nicht autorisiert. Sie haben den Login-Prozess noch nicht erfolgreich abgeschlossen oder die maximale Login-Zeit bereits überschritten. Bitte loggen Sie sich ein, bevor Sie fortfahren.");
     }
 }
 

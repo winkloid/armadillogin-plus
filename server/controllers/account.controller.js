@@ -3,6 +3,16 @@ const LoginSessionModel = require("../models/loginSession.model");
 const WebAuthnAuthenticatorModel = require("../models/webauthn_authenticator.model")
 const mongoose= require("mongoose");
 
+const getCurrentUserInformation = async (req, res) => {
+    if(req.session?.userId && req.session?.userName) {
+        return res.status(200).send({
+            userName: req.session.userName
+        });
+    } else {
+        return res.status(404).send("Es wurde kein aktuell authentifizierter Benutzer gefunden.");
+    }
+}
+
 const deleteUser = async (req, res) => {
     const mongooseSession = await mongoose.startSession();
     mongooseSession.startTransaction();
@@ -33,6 +43,7 @@ const logOutUser = (req, res) => {
 }
 
 module.exports = {
+    getCurrentUserInformation,
     deleteUser,
     logOutUser
 }
