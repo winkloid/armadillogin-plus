@@ -23,6 +23,8 @@ import AuthorizeShortcodeSession from "./pages/shortcodeLogin/authorizeShortcode
 import About from "./pages/about.jsx";
 import EIdMainPage from "./pages/eIdLogin/eIdMainPage.jsx";
 import EIdRegistration from "./pages/eIdLogin/eIdRegistration.jsx";
+import EIdLogin_userNameInput from "./pages/eIdLogin/eIdLogin_userNameInput.jsx";
+import EIdLogin_completion from "./pages/eIdLogin/eIdLogin_completion.jsx";
 
 const router = createBrowserRouter([
     {
@@ -81,6 +83,14 @@ const router = createBrowserRouter([
             {
                 path: "eId/registration",
                 element: <EIdRegistration />
+            },
+            {
+                path: "eId/login",
+                element: <EIdLogin_userNameInput />
+            },
+            {
+                path:"eId/login/completion",
+                element: <EIdLogin_completion />
             }
         ]
     },

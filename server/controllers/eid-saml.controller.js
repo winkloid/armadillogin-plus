@@ -63,10 +63,12 @@ const assertSaml = (req, res) => {
             if (err != null) {
                 return res.status(500).send("Interner Server Fehler beim Überprüfen der Antwort desAusweis-Anmelde-Dienstes: " + err);
             } else {
-                if(req.session.isAuthenticated && req.session.userId && req.session.userName) {
-                    req.session.eIdentifier = saml_response.user.name_id;
-                    req.session.eIdentifierIssuer = saml_response.user.attributes["http://www.skidentity.de/att/IDIssuer"];
+                req.session.eIdentifier = saml_response.user.name_id;
+                req.session.eIdentifierIssuer = saml_response.user.attributes["http://www.skidentity.de/att/IDIssuer"];
+                if(req.session?.isAuthenticated && req.session?.userId && req.session?.userName) {
                     return res.status(200).redirect(process.env.FRONTEND_BASE_URL + "/eId/registration");
+                } else {
+                    return res.status(200).redirect(process.env.FRONTEND_BASE_URL + "/eId/login/completion");
                 }
             }
         }
@@ -103,10 +105,78 @@ const linkEIdToAccount = async (req, res) => {
     }
 }
 
+const loginUserNameInput = async (req, res) => {
+    if(!req.body.userName) {
+        return req.status(400).send("Sie haben keinen Benutzernamen angegeben. Bitte geben Sie einen Benutzernamen an.");
+    }
+
+    const fetchedEIdUserInformation = await fetchEIdUserInformation(req.body.userName);
+    // handle errors in fetched user information
+    if(fetchedEIdUserInformation.success === 0) {
+        return res.status(500).send("Interner Server Fehler - Abruf von Benutzerinformationen aus der Datenbank nicht möglich. \nFehlerbeschreibung:\n"+ fetchedEIdUserInformation.content);
+    }
+    if(!fetchedEIdUserInformation.content || !fetchedEIdUserInformation.content?.eIdentifier) {
+        return res.status(404).send("Ein Benutzerkonto mit dem angegebenen Benutzernamen und einem mit dem Konto verknüpften Ausweis konnte nicht gefunden werden. Bitte überprüfen Sie den angegebenen Benutzernamen.");
+    }
+
+    // if no errors occur: Add userName to session; reset session to unauthenticated when changing username
+    req.session.isAuthenticated = false;
+    req.session.userName = req.body.userName;
+    return res.status(201).send("Eine Sitzung mit dem angegebenen Benutzernamen wurde erzeugt.");
+}
+
+const loginCompletion = async (req, res) => {
+    if(req.session?.userName && req.session?.eIdentifier) {
+        console.log(req.session.eIdentifier);
+        let findEIdUserQuery = await UserModel.findOne({
+            isRegistered: true,
+            userName: req.session.userName,
+            eIdentifier: req.session.eIdentifier
+        }).then((response) => {
+            return {success: 1, content: response};
+        }).catch((error) => {
+            return {success: 0, content: error};
+        });
+        // if query was not successful
+        if(findEIdUserQuery.success === 0) {
+            return res.status(500).send("Bei der Suche des angegebenen Benutzers in der Benutzerdatenbank ist ein Fehler aufgetreten.");
+        }
+        // if query was successful but nothing found
+        if(!findEIdUserQuery.content) {
+            return res.status(404).send("Ein Benutzer mit dem angegebenen Benutzernamen '" + req.session.userName + "' und dem verwendeten Ausweis konnte nicht gefunden werden.");
+        }
+        // if query was successful and user was found: create authenticated session
+        req.session.userId = findEIdUserQuery.content._id;
+        req.session.isAuthenticated = true;
+        return res.status(201).send("Sie wurden erfolgreich eingeloggt.");
+    } else {
+        // req.session.isAuthenticated is being reset to false so that a user can start with a fresh session even if there are any inconsistencies with it
+        req.session.isAuthenticated = false;
+        return res.status(400).send("Die Authentifizierung konnte nicht abgeschlossen werden, da die Anfrage nicht die notwendigen Bedingungen erfüllt hat. Um den Login bei ArmadilLogin PLUS abzuschließen, müssen Sie zuvor die Eingabe des Benutzernamen und den Login mithilfe des Ausweises beim elektronischen Ausweisdienst durchgeführt haben.");
+    }
+}
+
+// ------------------------
+// PRIVATE HELPER FUNCTIONS
+const fetchEIdUserInformation = async (userNameToFetch) => {
+    // fetch user information from database
+    return await UserModel.findOne({
+        userName: userNameToFetch,
+        isRegistered: true
+    }).exec().then((databaseResponse) => {
+        return {success: 1, content: databaseResponse};
+    }).catch((databaseError) => {
+        return {success: 0, content: databaseError};
+    });
+}
+
+
 module.exports = {
     getMetadata,
     samlLogin,
     samlCallback,
     assertSaml,
-    linkEIdToAccount
+    linkEIdToAccount,
+    loginUserNameInput,
+    loginCompletion
 }
