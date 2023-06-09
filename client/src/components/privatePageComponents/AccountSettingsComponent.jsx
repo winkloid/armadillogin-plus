@@ -9,10 +9,10 @@ axios.defaults.validateStatus = function () {
     return true;
 };
 
-export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried, setAccountDeletionSuccess, setErrorState, setCurrentError, isLoading, setIsLoading, setCurrentNavigationState, privateState}) {
+export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried, setAccountDeletionSuccess, setErrorState, setCurrentError, isGlobalLoading, setIsGlobalLoading, setCurrentNavigationState, privateState}) {
 
     const handleLogOut = async () => {
-        setIsLoading(true);
+        setIsGlobalLoading(true);
         try {
             await axios({
                 method: "post",
@@ -31,12 +31,12 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
             setCurrentError("Fehler bei der Herstellung einer Verbindung zum Backend-Server. Bitte überprüfen Sie Ihre Internetverbindung: \n" + error);
             setErrorState(ErrorState.connectionError);
         } finally {
-            setIsLoading(false);
+            setIsGlobalLoading(false);
         }
     }
 
     const handleAccountDeletion = async () => {
-        setIsLoading(true);
+        setIsGlobalLoading(true);
         try {
             const accountDeletionResponse = await axios({
                 method: "DELETE",
@@ -59,12 +59,12 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
                 setCurrentError("Unerwarteter Fehler beim Herstellen einer Verbindung zum Backend-Server: " + accountDeletionResponse.data);
                 setCurrentError(ErrorState.connectionError);
             }
-            setIsLoading(false);
+            setIsGlobalLoading(false);
             setAccountDeletionTried(true);
         } catch(error) {
             setCurrentError("Fehler bei der Verbindung zum Backend-Server. Bitte überprüfen Sie Ihre Internetverbindung.");
             setErrorState(ErrorState.connectionError);
-            setIsLoading(false);
+            setIsGlobalLoading(false);
             setAccountDeletionTried(true);
         }
     }
@@ -89,7 +89,7 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
                             <p>Wenn Sie Ihren Benutzerbereich verlassen und die aktuelle Sitzung beenden möchten, können Sie sich hier abmelden. Nach der Abmeldung müssen Sie sich erneut anmelden, um in Ihren persönlichen Benutzerbereich zurückkehren zu können. Durch diesen Vorgang werden keine Daten aus Ihrem Benutzerkonto gelöscht.</p>
                         </div>
                         <div className={"card-footer bg-warning bg-opacity-25"}>
-                            <button className={"btn btn-primary"} type={"button"} onClick={handleLogOut} disabled={isLoading}>Melde mich ab</button>
+                            <button className={"btn btn-primary"} type={"button"} onClick={handleLogOut} disabled={isGlobalLoading}>Melde mich ab</button>
                         </div>
                     </div>
                     <div className={"card p-0 ms-sm-1 mb-2 col-sm col-lg"}>
@@ -103,7 +103,7 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
                                 kann zum Anlegen eines neuen Benutzerkontos verwendet werden.</p>
                         </div>
                         <div className={"card-footer bg-danger bg-opacity-25"}>
-                            <button className={"btn btn-danger"} type={"button"} data-bs-toggle="modal" data-bs-target="#confirmAccountDeletionModal" disabled={isLoading}>Lösche
+                            <button className={"btn btn-danger"} type={"button"} data-bs-toggle="modal" data-bs-target="#confirmAccountDeletionModal" disabled={isGlobalLoading}>Lösche
                                 mein Benutzerkonto und alle verknüpften Daten
                             </button>
 

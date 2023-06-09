@@ -127,7 +127,6 @@ const loginUserNameInput = async (req, res) => {
 
 const loginCompletion = async (req, res) => {
     if(req.session?.userName && req.session?.eIdentifier) {
-        console.log(req.session.eIdentifier);
         let findEIdUserQuery = await UserModel.findOne({
             isRegistered: true,
             userName: req.session.userName,
@@ -156,6 +155,20 @@ const loginCompletion = async (req, res) => {
     }
 }
 
+const getUserInformation = async (req, res) => {
+    let userInformation = await fetchEIdUserInformation(req.session.userName);
+    if(userInformation.success === 0) {
+        return res.status(500).send("Die Benutzerinformationen konnten aufgrund eines internen Serverfehlers nicht aus der Benutzerdatenbank abgerufen werden.");
+    }
+    if(!userInformation.content) {
+        return res.status(404).send("Der Benutzer konnte in der Benutzerdatenbank nicht gefunden werden.");
+    }
+    return res.status(200).send({
+        userName: req.session.userName,
+        eIdentifier: !!(userInformation.content.eIdentifier)
+    });
+}
+
 // ------------------------
 // PRIVATE HELPER FUNCTIONS
 const fetchEIdUserInformation = async (userNameToFetch) => {
@@ -178,5 +191,6 @@ module.exports = {
     assertSaml,
     linkEIdToAccount,
     loginUserNameInput,
-    loginCompletion
+    loginCompletion,
+    getUserInformation
 }

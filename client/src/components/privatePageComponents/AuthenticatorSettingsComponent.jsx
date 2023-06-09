@@ -12,7 +12,8 @@ axios.defaults.validateStatus = function () {
     return true;
 };
 
-export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, setCurrentError, isLoading, setIsLoading}) {
+export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, setCurrentError, isGlobalLoading, setIsGlobalLoading}) {
+    const [isLoading, setIsLoading] = useState(true);
     const [customAuthenticatorName, setCustomAuthenticatorName] = useState("");
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
@@ -24,6 +25,7 @@ export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, set
     }, []);
 
     const fetchAuthenticatorList = async () => {
+        setIsGlobalLoading(true);
         setIsLoading(true);
         let authenticatorListResponse;
         try {
@@ -46,16 +48,18 @@ export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, set
                 setCurrentError(authenticatorListResponse.data);
                 setErrorState(ErrorState.connectionError);
             }
-            setIsLoading(false);
         } catch (error) {
             setCurrentError("Fehler bei der Kommunikation mit dem Server. Bitte überprüfen Sie Ihre Internetverbindung.");
             setErrorState(ErrorState.connectionError);
+        } finally {
             setIsLoading(false);
+            setIsGlobalLoading(false);
         }
     }
 
     const handleAuthenticatorDeletion = async (credentialId) => {
         terminal.log("credentialId:" + credentialId);
+        setIsGlobalLoading(true);
         setIsLoading(true);
         try {
             const authenticatorDeletionResponse = await axios({
@@ -83,15 +87,17 @@ export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, set
                 setCurrentError("Unerwarteter Fehler bei der Kommunikation mit dem Server. Bitte prüfen Sie Ihre Eingaben und Ihre Verbindung.");
                 setErrorState(ErrorState.authenticatorDeletionError);
             }
-            setIsLoading(false);
         } catch(error) {
             setCurrentError("Fehler bei der Kommunikation mit dem Server. Bitte überprüfen Sie Ihre Internetverbindung.");
             setErrorState(ErrorState.connectionError);
+        } finally {
             setIsLoading(false);
+            setIsGlobalLoading(false);
         }
     }
 
     const handleAuthenticatorAddition = async () => {
+        setIsGlobalLoading(true);
         setIsLoading(true);
 
         let registrationOptions;
@@ -110,12 +116,14 @@ export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, set
             // Error handling
             } else if (optionsResponse.status === 401) {
                 setIsLoggedIn(false);
+                setIsGlobalLoading(false);
                 return;
             }
             else {
                 setCurrentError("Fehler: " + optionsResponse.data);
                 setErrorState(ErrorState.registrationOptionsError);
                 setIsLoading(false);
+                setIsGlobalLoading(false);
                 return;
             }
         } catch (error) {
@@ -126,6 +134,7 @@ export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, set
             }
             setErrorState(ErrorState.connectionError);
             setIsLoading(false);
+            setIsGlobalLoading(false);
             return;
         }
 
@@ -144,6 +153,7 @@ export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, set
             }
             setErrorState(ErrorState.completeRegistrationError);
             setIsLoading(false);
+            setIsGlobalLoading(false);
             return;
         }
 
@@ -172,6 +182,7 @@ export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, set
             setCurrentError("Fehler bei der Verbindung mit dem Backend. Bitte prüfen Sie Ihre Internetverbindung.");
             setErrorState(ErrorState.connectionError);
             setIsLoading(false);
+            setIsGlobalLoading(false);
         }
     }
 
@@ -211,7 +222,7 @@ export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, set
                                aria-describedby={"authenticatorName-addon"}/>
                     </div>
                 </form>
-                <button className="btn btn-secondary" type={"button"} onClick={handleAuthenticatorAddition} disabled={isLoading}>
+                <button className="btn btn-secondary" type={"button"} onClick={handleAuthenticatorAddition} disabled={isGlobalLoading}>
                     <span>➕ </span>Füge weiteren hinzu
                 </button>
                 {registrationSuccess && (<><p>Authenticator wurde erfolgreich hinzugefügt</p></>)}

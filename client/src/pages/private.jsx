@@ -5,6 +5,9 @@ import {Link, useOutletContext, useParams} from "react-router-dom";
 import {ErrorState} from "../types/errorState.js";
 import ErrorComponent from "../components/ErrorComponent.jsx";
 import {NavigationState} from "../types/navigationState.js";
+import axios from "axios";
+import EIdLogin_completion from "./eIdLogin/eIdLogin_completion.jsx";
+import EIdOptionsComponent from "../components/privatePageComponents/EIdOptionsComponent.jsx";
 
 export default function Private () {
     const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
@@ -13,30 +16,67 @@ export default function Private () {
     const {privateState} = useParams();
 
     const [isloggedIn, setIsLoggedIn] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
+
+    // use isGlobalLoading and isLoading to distinguish whether something is loading inside a component or only inside of one of the other components of the private page - e.g. there don't have to be a spinner animation in authenticator settings component if only another component is doing an operation that needs loading time
+    // isGlobalLoading is generally used to render buttons as disabled if there is already an operation loading in any of the other components of the private page
+    const [isGlobalLoading, setIsGlobalLoading] = useState(true);
     const [errorState, setErrorState] = useState(ErrorState.success);
     const [currentError, setCurrentError] = useState("");
     const [accountDeletionTried, setAccountDeletionTried] = useState(false);
     const [accountDeletionSuccess, setAccountDeletionSuccess] = useState(false);
+    const [currentUserInformation, setCurrentUserInformation] = useState(null);
+
+    const fetchUserInformation = async () => {
+        try {
+            setIsGlobalLoading(true);
+            let userInformationResponse = await axios({
+                method: "get",
+                url: import.meta.env.VITE_BACKEND_BASE_URL + "/api/eid-saml/userInformation"
+            }).then((response) => {
+                return response;
+            });
+
+            if(userInformationResponse.status === 200) {
+                setCurrentUserInformation(userInformationResponse.data);
+                setErrorState(ErrorState.success);
+            } else {
+                setCurrentError("Server meldet: " + userInformationResponse.data);
+                if (userInformationResponse.status === 404) {
+                    setErrorState(ErrorState.notFoundError);
+                } else if (userInformationResponse.status === 500) {
+                    setErrorState(ErrorState.serverError);
+                } else {
+                    setErrorState(ErrorState.authenticationOptionsError);
+                }
+            }
+        } catch(error) {
+            setCurrentError("Verbindungsproblem beim Abruf der Benutzerinformationen vom Server.");
+            setErrorState(ErrorState.connectionError);
+        } finally {
+            setIsGlobalLoading(false);
+        }
+    }
 
     useEffect(() => {
         setCurrentNavigationState(NavigationState.private);
+        fetchUserInformation();
     }, []);
 
     if(isloggedIn && !accountDeletionTried && !accountDeletionSuccess) {
         return (
             <div className={"card p-0 border-success border-opacity-25"}>
                 <div className={"card-header bg-success bg-opacity-25 bg-gradient border-success border-opacity-25"}>
-                    <h1 className={"display-5 m-0"}>Willkommen in Ihrem persönlichen Bereich!</h1>
+                    <h1 className={"display-5 m-0"}>Willkommen in Ihrem persönlichen Bereich{(currentUserInformation ? ", " + currentUserInformation.userName : "")}!</h1>
                 </div>
-                <div className={"card-body"}>
-                    <AuthenticatorSettings setIsLoggedIn={setIsLoggedIn} setErrorState={setErrorState} setCurrentError={setCurrentError} isLoading={isLoading} setIsLoading={setIsLoading}/>
+                <div className={"card-body bg-success bg-opacity-10"}>
+                    <AuthenticatorSettings setIsLoggedIn={setIsLoggedIn} setErrorState={setErrorState} setCurrentError={setCurrentError} isGlobalLoading={isGlobalLoading} setIsGlobalLoading={setIsGlobalLoading}/>
+                    <EIdOptionsComponent currentUserInformation={currentUserInformation} />
 
                     {/*
                         Also pass the state as privateState.
                         Passing the State is important so that we navigate to the welcome component with the right navigation state in the next step.
                     */}
-                    <AccountSettings setIsLoggedIn={setIsLoggedIn} setAccountDeletionTried={setAccountDeletionTried} setAccountDeletionSuccess={setAccountDeletionSuccess} setCurrentError={setCurrentError} setErrorState={setErrorState} isLoading={isLoading} setIsLoading={setIsLoading} setCurrentNavigationState={setCurrentNavigationState} privateState={privateState}/>
+                    <AccountSettings setIsLoggedIn={setIsLoggedIn} setAccountDeletionTried={setAccountDeletionTried} setAccountDeletionSuccess={setAccountDeletionSuccess} setCurrentError={setCurrentError} setErrorState={setErrorState} isGlobalLoading={isGlobalLoading} setIsGlobalLoading={setIsGlobalLoading} setCurrentNavigationState={setCurrentNavigationState} privateState={privateState}/>
                 </div>
                 <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
             </div>
