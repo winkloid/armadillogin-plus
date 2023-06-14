@@ -1,8 +1,10 @@
 import {browserSupportsWebAuthn} from "@simplewebauthn/browser";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {ErrorState} from "../../types/errorState.js";
 import ErrorComponent from "../../components/ErrorComponent.jsx";
 import axios from "axios";
+import {useOutletContext} from "react-router-dom";
+import {NavigationState} from "../../types/navigationState.js";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -16,6 +18,7 @@ export default function EIdLogin_userNameInput() {
     const [currentError, setCurrentError] = useState("");
     const [errorState, setErrorState] = useState(ErrorState.success);
     const [isLoading, setIsLoading] = useState(false);
+    const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
 
     const addUserNameToSession = async () => {
         try {
@@ -54,6 +57,10 @@ export default function EIdLogin_userNameInput() {
             setIsLoading(false);
         }
     }
+
+    useEffect(() => {
+        setCurrentNavigationState(NavigationState.eid_login);
+    }, []);
 
     return(
         <div className={"card p-0"}>

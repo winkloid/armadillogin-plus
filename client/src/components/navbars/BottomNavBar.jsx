@@ -24,15 +24,30 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
         } else if(navigationState === NavigationState.welcome_shortcode_completed) {
             stateHref = "/";
             stateLabel = "Startseite (nach Shortcode)";
-        } else if(navigationState === NavigationState.registration){
+        } else if(navigationState === NavigationState.welcome_eid_registration_completed) {
+            stateHref = "/";
+            stateLabel = "Startseite (nach Ausweis-/eID-Verknüpfung mit dem eigenen ArmadilLogin-PLUS-Konto)";
+        } else if(navigationState === NavigationState.welcome_eid_login_completed) {
+            stateHref = "/";
+            stateLabel = "Startseite (nach Ausweis-/eID-Login)";
+        } else if(navigationState === NavigationState.registration) {
             stateHref = "/registration";
             stateLabel = "Registrierung";
         } else if(navigationState === NavigationState.login) {
             stateHref = "/login";
             stateLabel = "FIDO2-Login";
-        } else if(navigationState === NavigationState.private) {
-            stateHref = "/private";
-            stateLabel = "Privatbereich";
+        } else if(navigationState === NavigationState.private_login_completed) {
+            stateHref = "/private/welcome_login_completed";
+            stateLabel = "Privatbereich (nach Login)";
+        } else if(navigationState === NavigationState.private_shortcode_completed) {
+            stateHref = "/private/welcome_shortcode_completed";
+            stateLabel = "Privatbereich (nach Shortcode-Login)";
+        } else if(navigationState === NavigationState.private_eid_registration_completed) {
+            stateHref = "/private/eid_registration_completed";
+            stateLabel = "Privatbereich (nach Ausweis-/eID-Verknüpfung)";
+        } else if(navigationState === NavigationState.private_eid_login_completed) {
+            stateHref = "/private/eid_login_completed";
+            stateLabel = "Privatbereich (nach Ausweis-/eID-Login)";
         } else if(navigationState === NavigationState.shortcodeGeneration) {
             stateHref = "/shortcodeLogin/generateShortcode";
             stateLabel = "Code-Generierung";
@@ -42,6 +57,12 @@ export default function BottomNavBar({currentNavigationState, setCurrentNavigati
         } else if(navigationState === NavigationState.shortcodeAuthorization_authorizationScreen) {
             stateHref = "/shortcodeLogin/authorize";
             stateLabel = "Shortcode-Autorisierung";
+        } else if(navigationState === NavigationState.eid_login) {
+            stateHref = "/eid/login";
+            stateLabel = "Ausweis-/eID-Login";
+        } else if(navigationState === NavigationState.eid_registration) {
+            stateHref = "/eid";
+            stateLabel = "Ausweis-/eID-Verknüpfung mit dem eigenen ArmadilLogin-PLUS-Konto"
         }
 
         return {

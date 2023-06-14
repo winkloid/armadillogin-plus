@@ -1,9 +1,10 @@
 import {useEffect, useState} from "react";
 import axios from "axios";
 import {ErrorState} from "../../types/errorState.js";
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useNavigate, useOutletContext} from "react-router-dom";
 import Button from "bootstrap/js/src/button.js";
 import ErrorComponent from "../../components/ErrorComponent.jsx";
+import {NavigationState} from "../../types/navigationState.js";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -16,6 +17,7 @@ export default function EIdRegistration() {
     const [isLoading, setIsLoading] = useState(true);
     const [currentError, setCurrentError] = useState("");
     const [errorState, setErrorState] = useState(ErrorState.success);
+    const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
 
     const [currentUserInformation, setCurrentUserInformation] = useState(null);
 
@@ -64,7 +66,7 @@ export default function EIdRegistration() {
             if(linkingResponse.status === 200) {
                 setCurrentError("");
                 setErrorState(ErrorState.success);
-                navigate("/private");
+                navigate("/private/eid_registration_completed");
             } else {
                 setCurrentError("Server meldet: " + linkingResponse.data);
                 if (linkingResponse.status === 401) {
@@ -89,6 +91,7 @@ export default function EIdRegistration() {
     }
 
     useEffect(() => {
+        setCurrentNavigationState(NavigationState.eid_registration);
         getCurrentUserInformation()
     }, []);
 
@@ -120,7 +123,7 @@ export default function EIdRegistration() {
                     </div>
                     <div className={"card-footer"}>
                         <button className={"btn btn-primary m-2 ms-0"} onClick={linkEIdToAccount}>Bestätige die Verknüpfung des Ausweises mit meinem Konto</button>
-                        <Link to={"/private"} className={"btn btn-secondary"}>Breche die Verknüpfung des Ausweises ab und navigiere in den Privatbereich</Link>
+                        <Link to={"/private/welcome_login_completed"} className={"btn btn-secondary"}>Breche die Verknüpfung des Ausweises ab und navigiere in den Privatbereich</Link>
                     </div>
                     <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError} />
                 </div>

@@ -25,7 +25,7 @@ export default function AuthenticationSuccessfulComponent({privateState}) {
                 {privateState === NavigationState.welcome_shortcode_completed && <p>Sie können Ihr Benutzerkonto nun von diesem Gerät aus normal nutzen, ohne dass Sie sich direkt auf diesem Gerät eingeloggt haben. Das ist beispielsweise für Geräte sinnvoll, die FIDO2 nicht unterstützen oder keine geeigneten Anschlüsse für FIDO2-Authenticators besitzen.</p>}
             </div>
             <div className={"card-footer bg-success bg-opacity-25"}>
-                <Link to={"/private/" + (currentPrivateState ? currentPrivateState : "")} state={{navigationState: privateState}} className={"btn btn-primary"}>Navigiere in meinen persönlichen Bereich</Link>
+                <Link to={"/private/" + (currentPrivateState ? currentPrivateState : "")} className={"btn btn-primary"}>Navigiere in meinen persönlichen Bereich</Link>
             </div>
         </div>
     );

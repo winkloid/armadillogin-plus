@@ -1,8 +1,10 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {ErrorState} from "../../types/errorState.js";
 import axios from "axios";
 import terminal from "virtual:terminal";
 import ErrorComponent from "../../components/ErrorComponent.jsx";
+import {useOutletContext} from "react-router-dom";
+import {NavigationState} from "../../types/navigationState.js";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -15,11 +17,16 @@ export default function EIdMainPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [currentError, setCurrentError] = useState("");
     const [errorState, setErrorState] = useState(ErrorState.success);
+    const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
     const [samlUrl, setSamlUrl] = useState(null);
 
     const getEidSamlUrl = async () => {
         window.location.href = import.meta.env.VITE_BACKEND_BASE_URL + "/api/eid-saml/login";
     }
+
+    useEffect(() => {
+        setCurrentNavigationState(NavigationState.eid_registration);
+    }, []);
 
     return(
         <div className={"card p-0"}>

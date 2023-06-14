@@ -20,10 +20,16 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
             });
 
             // check which value was assigned to privateState inside AuthenticationSuccessfulComponent
-            if(privateState === "welcome_shortcode_completed") {
-                setCurrentNavigationState(NavigationState.welcome_shortcode_completed);
-            } else {
+            if(privateState === "welcome_login_completed") {
                 setCurrentNavigationState(NavigationState.welcome_login_completed);
+            } else if(privateState === "welcome_shortcode_completed") {
+                setCurrentNavigationState(NavigationState.welcome_shortcode_completed);
+            } else if(privateState === "eid_registration_completed") {
+                setCurrentNavigationState(NavigationState.welcome_eid_registration_completed);
+            } else if(privateState === "eid_login_completed"){
+                setCurrentNavigationState(NavigationState.welcome_eid_login_completed);
+            } else {
+                setCurrentNavigationState(NavigationState.welcome_init);
             }
             setIsLoggedIn(false);
             setErrorState(ErrorState.success);
@@ -75,7 +81,6 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
                 <h4 className={"m-0"}>Benutzerkonto-Einstellungen</h4>
             </div>
             <div className={"card-body"}>
-                {/* TODO: Benutzername mit angeben */}
                 <p>Aktuell sind Sie in Ihrem persönlichen Bereich angemeldet.</p>
             </div>
             <div className={"card-footer"}>

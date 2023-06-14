@@ -58,7 +58,15 @@ export default function Private () {
     }
 
     useEffect(() => {
-        setCurrentNavigationState(NavigationState.private);
+        if(privateState === "welcome_shortcode_completed") {
+            setCurrentNavigationState(NavigationState.private_shortcode_completed);
+        } else if(privateState === "eid_registration_completed") {
+            setCurrentNavigationState(NavigationState.private_eid_registration_completed);
+        } else if(privateState === "eid_login_completed") {
+            setCurrentNavigationState(NavigationState.private_eid_login_completed);
+        } else {
+            setCurrentNavigationState(NavigationState.private_login_completed);
+        }
         fetchUserInformation();
     }, []);
 
@@ -112,7 +120,6 @@ export default function Private () {
             </div>
         );
     } else {
-        // TODO: Wenn Benutzer nicht eingeloggt ist, entsprechend Möglichkeiten zum Login anbieten.
         return(
             <div className={"card p-0"}>
                 <div className={"card-header bg-secondary bg-gradient text-white"}>

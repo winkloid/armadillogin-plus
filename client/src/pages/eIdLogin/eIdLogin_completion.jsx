@@ -2,7 +2,7 @@ import {useEffect, useState} from "react";
 import axios from "axios";
 import {ErrorState} from "../../types/errorState.js";
 import {NavigationState} from "../../types/navigationState.js";
-import {Link} from "react-router-dom";
+import {Link, useOutletContext} from "react-router-dom";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -15,6 +15,7 @@ export default function EIdLogin_completion() {
     const [isLoading, setIsLoading] = useState(true);
     const [currentError, setCurrentError] = useState("");
     const [errorState, setErrorState] = useState(ErrorState.success);
+    const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
     const [authenticationFailed, setAuthenticationFailed] = useState(false);
 
     const completeAuthentication = async () => {
@@ -55,6 +56,7 @@ export default function EIdLogin_completion() {
     }
 
     useEffect(() => {
+        setCurrentNavigationState(NavigationState.eid_login);
         completeAuthentication();
     }, []);
 
@@ -104,7 +106,7 @@ export default function EIdLogin_completion() {
                 <p className={"mb-0"}>Sie haben sich erfolgreich mittels Ausweis/eID in das Benutzerkonto eingeloggt, das Sie im Registrierungsvorgang erstellt haben. Betätigen Sie die Schaltfläche "Navigiere in meinen persönlichen Bereich", um sich in Ihrem persönlichen Bereich weitere Informationen zu Ihrem Benutzerkonto anzeigen zu lassen.</p>
             </div>
             <div className={"card-footer bg-success bg-opacity-25"}>
-                <Link to={"/private/eIdLoginCompleted"}className={"btn btn-primary"}>Navigiere in meinen persönlichen Bereich</Link>
+                <Link to={"/private/eid_login_completed"} className={"btn btn-primary"}>Navigiere in meinen persönlichen Bereich</Link>
             </div>
         </div>
     );
