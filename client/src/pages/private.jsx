@@ -84,7 +84,7 @@ export default function Private () {
                         Also pass the state as privateState.
                         Passing the State is important so that we navigate to the welcome component with the right navigation state in the next step.
                     */}
-                    <AccountSettings setIsLoggedIn={setIsLoggedIn} setAccountDeletionTried={setAccountDeletionTried} setAccountDeletionSuccess={setAccountDeletionSuccess} setCurrentError={setCurrentError} setErrorState={setErrorState} isGlobalLoading={isGlobalLoading} setIsGlobalLoading={setIsGlobalLoading} setCurrentNavigationState={setCurrentNavigationState} privateState={privateState}/>
+                    <AccountSettings setIsLoggedIn={setIsLoggedIn} setAccountDeletionTried={setAccountDeletionTried} setAccountDeletionSuccess={setAccountDeletionSuccess} setCurrentError={setCurrentError} setErrorState={setErrorState} isGlobalLoading={isGlobalLoading} setIsGlobalLoading={setIsGlobalLoading} privateState={privateState}/>
                 </div>
                 <ErrorComponent errorState={errorState} setErrorState={setErrorState} errorMessage={currentError}/>
             </div>

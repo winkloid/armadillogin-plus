@@ -1,13 +1,16 @@
-import {Link} from "react-router-dom";
+import {Link, useOutletContext} from "react-router-dom";
+import {NavigationState} from "../../types/navigationState.js";
 
 export default function EIdOptionsComponent({currentUserInformation}) {
+    const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
+
     if(!currentUserInformation?.eIdentifier) {
         return (
-            <div className="card p-0 mb-3 border-secondary">
-                <div className="card-header border-secondary">
-                    <h4 className={"m-0"}>Login via Ausweis</h4>
+            <div className={"card p-0 mb-3 " + ((currentNavigationState === NavigationState.private_shortcode_completed) ? "border-primary" : "border-secondary")}>
+                <div className={"card-header " + ((currentNavigationState === NavigationState.private_shortcode_completed) ? "bg-primary border-primary" : "border-secondary")}>
+                    <h4 className={"m-0 " + ((currentNavigationState === NavigationState.private_shortcode_completed) ? "text-white" : "")}>Login via Ausweis</h4>
                 </div>
-                <div className="card-body">
+                <div className={"card-body " + ((currentNavigationState === NavigationState.private_shortcode_completed) ? "bg-primary bg-opacity-10" : "")}>
                     <img src={"/src/assets/logo_eID.svg"} className={"img-fluid rounded mx-auto d-block col-md-2 mb-3"}
                          alt={"Logo des elektrischen Personalausweises bestehend aus einem grünen und einem blauen Halbkreis."}/>
                     <p>Neben der Verknüpfung mehrerer Authenticators gibt es auch die Option, durch die Verknüpfung des
@@ -23,8 +26,8 @@ export default function EIdOptionsComponent({currentUserInformation}) {
                         Alternative <a href={"https://www.openecard.org/startseite/"}>Open eCard</a> installiert sein.
                     </p>
                 </div>
-                <div className={"card-footer"}>
-                    <Link to={"/eId"} className={"btn btn-primary"}>Füge meinen Ausweis als Login-Methode hinzu</Link>
+                <div className={"card-footer " + ((currentNavigationState === NavigationState.private_shortcode_completed) ? "bg-primary bg-opacity-25" : "")}>
+                    <Link to={"/eId"} className={"btn " + ((currentNavigationState === NavigationState.private_shortcode_completed) ? "btn-primary" : "btn-secondary")}>Füge meinen Ausweis als Login-Methode hinzu</Link>
                 </div>
             </div>
         );

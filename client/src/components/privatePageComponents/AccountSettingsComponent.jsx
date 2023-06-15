@@ -1,6 +1,7 @@
 import axios from "axios";
 import {ErrorState} from "../../types/errorState.js";
 import {NavigationState} from "../../types/navigationState.js";
+import {useOutletContext} from "react-router-dom";
 
 // Enable sending cookies with all requests by default
 axios.defaults.withCredentials = true;
@@ -9,7 +10,8 @@ axios.defaults.validateStatus = function () {
     return true;
 };
 
-export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried, setAccountDeletionSuccess, setErrorState, setCurrentError, isGlobalLoading, setIsGlobalLoading, setCurrentNavigationState, privateState}) {
+export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried, setAccountDeletionSuccess, setErrorState, setCurrentError, isGlobalLoading, setIsGlobalLoading, privateState}) {
+    const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
 
     const handleLogOut = async () => {
         setIsGlobalLoading(true);
@@ -76,29 +78,29 @@ export default function AccountSettings({setIsLoggedIn, setAccountDeletionTried,
     }
 
     return (
-        <div className="card border-primary p-0 mb-3">
-            <div className="card-header bg-primary bg-opacity-10 border-primary">
-                <h4 className={"m-0"}>Benutzerkonto-Einstellungen</h4>
+        <div className={"card p-0 mb-3 " + ((currentNavigationState === NavigationState.private_eid_registration_completed || currentNavigationState === NavigationState.private_login_completed) ? "border-primary" : "border-secondary")}>
+            <div className={"card-header " + ((currentNavigationState === NavigationState.private_eid_registration_completed || currentNavigationState === NavigationState.private_login_completed) ? "bg-primary border-primary" : "border-secondary")}>
+                <h4 className={"m-0 " + ((currentNavigationState === NavigationState.private_eid_registration_completed || currentNavigationState === NavigationState.private_login_completed) ? "text-white" : "")}>Benutzerkonto-Einstellungen</h4>
             </div>
-            <div className={"card-body"}>
+            <div className={"card-body " + ((currentNavigationState === NavigationState.private_eid_registration_completed || currentNavigationState === NavigationState.private_login_completed) ? "bg-primary bg-opacity-10" : "")}>
                 <p>Aktuell sind Sie in Ihrem persönlichen Bereich angemeldet.</p>
             </div>
-            <div className={"card-footer"}>
+            <div className={"card-footer " + ((currentNavigationState === NavigationState.private_eid_registration_completed || currentNavigationState === NavigationState.private_login_completed) ? "bg-primary bg-opacity-25" : "")}>
                 <h5 className={"mb-2"}>Optionen</h5>
                 <div className={"row m-0"}>
-                    <div className={"card border-primary p-0 me-sm-1 mb-2 col-sm col-lg"}>
-                        <div className={"card-header text-bg-warning"}>
+                    <div className={"card p-0 me-sm-1 mb-2 col-sm col-lg " + ((currentNavigationState === NavigationState.private_eid_registration_completed || currentNavigationState === NavigationState.private_login_completed) ? "border-primary" : "")}>
+                        <div className={"card-header " + ((currentNavigationState === NavigationState.private_eid_registration_completed || currentNavigationState === NavigationState.private_login_completed) ? "bg-primary text-white" : "bg-warning")}>
                             <h6 className={"m-0"}>Ausloggen</h6>
                         </div>
-                        <div className={"card-body bg-warning bg-opacity-10"}>
+                        <div className={"card-body " + ((currentNavigationState === NavigationState.private_eid_registration_completed || currentNavigationState === NavigationState.private_login_completed) ? "bg-primary bg-opacity-10" : "bg-warning bg-opacity-10")}>
                             <p>Wenn Sie Ihren Benutzerbereich verlassen und die aktuelle Sitzung beenden möchten, können Sie sich hier abmelden. Nach der Abmeldung müssen Sie sich erneut anmelden, um in Ihren persönlichen Benutzerbereich zurückkehren zu können. Durch diesen Vorgang werden keine Daten aus Ihrem Benutzerkonto gelöscht.</p>
                         </div>
-                        <div className={"card-footer bg-warning bg-opacity-25"}>
-                            <button className={"btn btn-primary"} type={"button"} onClick={handleLogOut} disabled={isGlobalLoading}>Melde mich ab</button>
+                        <div className={"card-footer " + ((currentNavigationState === NavigationState.private_eid_registration_completed || currentNavigationState === NavigationState.private_login_completed) ? "bg-primary bg-opacity-25" : "bg-warning bg-opacity-25")}>
+                            <button className={"btn " + ((currentNavigationState === NavigationState.private_eid_registration_completed || currentNavigationState === NavigationState.private_login_completed) ? "btn-primary" : "btn-warning")} type={"button"} onClick={handleLogOut} disabled={isGlobalLoading}>Melde mich ab</button>
                         </div>
                     </div>
                     <div className={"card p-0 ms-sm-1 mb-2 col-sm col-lg"}>
-                        <div className={"card-header text-bg-danger"}>
+                        <div className={"card-header bg-danger text-white"}>
                             <h6 className={"m-0"}>Konto löschen</h6>
                         </div>
                         <div className={"card-body m-0 bg-danger bg-opacity-10"}>
