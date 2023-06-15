@@ -65,6 +65,25 @@ export default function Welcome() {
                         </div>
                     </div>
                 </div>
+
+                <hr className="hr"/>
+
+                <h2 className={"display-6 m-1"}>Login mittels <strong>Ausweis/eID</strong></h2>
+                <p className={"m-1 pb-2"}>Eine der größten Hürden, die im FIDO2/WebAuthn-Standard verwurzelt sind, besteht in der <strong>Problematik der Wiederherstellbarkeit</strong> von Konten im Falle des Verlusts des eigenen FIDO2-Authenticators. Weil bei FIDO2 alle zum Login notwendigen <strong>geheimen Informationen fest auf dem Authenticator gespeichert</strong> werden, sind im <strong>Verlustfall ohne eine zuverlässige Wiederherstellungsmöglichkeit</strong> alle damit abgesicherten <strong>Benutzerkonten unzugänglich</strong>. Eigentlich existiert eine <strong>Vielzahl möglicher Wiederherstellungsoptionen</strong> wie beispielsweise das Senden eines Zugangs-Links via Mail oder die präventive Verknüpfung mehrerer Authenticators. Allerdings <strong>vermindern diese Optionen meist entweder die Sicherheit</strong> des Kontozugangs drastisch oder gehen mit <strong>erhöhten Kosten</strong> für den Endnutzer einher.</p>
+                <p className={"m-1 pb-2"}>In diesem Abschnitt wird der <strong>Login mittels Personalausweis</strong> demonstriert. Da sich ohnehin in der Regel jeder Bürger im Besitz eines Personalausweises befindet, entstehen für den Endnutzer <strong>keinerlei Zusatzkosten</strong>. Weiterhin ist der <strong>Sicherheitsaspekt ebenfalls höher als der der meisten anderen Wiederherstellungsoptionen</strong> einzuschätzen. Auch bei Ersatz des Ausweises ist der Login mit dem neuen Ausweis weiter möglich, weil alle identifizierenden Informationen über den <strong>elektronischen Ausweisdienst</strong> abrufbar bleiben, von dem diese Wiederherstellungsoption abhängig ist.</p>
+                <div className={"row m-1"}>
+                    <div className={"card p-0 col-lg mb-2 " + ((currentNavigationState === NavigationState.welcome_eid_registration_completed) ? "border-primary" : "")}>
+                        <div className={"card-header text-white " + ((currentNavigationState === NavigationState.welcome_eid_registration_completed) ? "bg-primary" : "bg-secondary")}>
+                            <h3 className={"card-title m-0"}>Zum Login mittels Ausweis/eID</h3>
+                        </div>
+                        <div className={"card-body"}>
+                            <p className={"card-text"}>Im Schritt zuvor verknüpften Sie bereits einen Ausweis mit Ihrem zuvor erstellten ArmadilLogin-PLUS-Benutzerkonto. In diesem Schritt wird der Login über die Ausweis-Methode demonstriert.</p>
+                        </div>
+                        <div className={"card-footer bg-opacity-25 " + ((currentNavigationState === NavigationState.welcome_eid_registration_completed) ? "bg-primary" : "bg-secondary")}>
+                            <Link to={"/eId/login"} className={"btn " + ((currentNavigationState === NavigationState.welcome_eid_registration_completed) ? "btn-primary" : "btn-secondary")}>Gehe zum Ausweis-Login</Link>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     )
