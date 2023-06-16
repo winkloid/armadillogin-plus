@@ -7,11 +7,15 @@ const {
 const {isAuthenticatedMiddleware} = require("../middleware/isAuthenticatedMiddleware");
 
 // WebAuthn Registration
+// time_startRegistration measurement
 router.post("/registrationOptions", registrationOptions);
+// time_endRegistration measurement
 router.post("/completeRegistration", completeRegistration);
 
 // WebAuthn Authentication
+// time_startFido2Authentication measurement
 router.post("/authenticationOptions", authenticationOptions);
+// time_endFido2Authentication measurement
 router.post("/completeAuthentication", completeAuthentication);
 
 // Operations that need Authorization

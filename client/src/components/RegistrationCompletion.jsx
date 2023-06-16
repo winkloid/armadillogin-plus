@@ -24,7 +24,7 @@ export default function RegistrationCompletion({registrationOptions, setRegistra
         try {
             // Pass the options to the authenticator and wait for a response
             registrationResponse = await startRegistration(registrationOptions);
-            terminal.log("RegistrationResponse: \n\n" + registrationResponse.rawId);
+            terminal.log("RegistrationResponse: \n\n" + registrationResponse);
         } catch (startRegistrationError) {
             setRegistrationSuccess(false);
             if (startRegistrationError.name === "InvalidStateError") {

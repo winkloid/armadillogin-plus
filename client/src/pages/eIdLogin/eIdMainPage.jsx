@@ -21,7 +21,7 @@ export default function EIdMainPage() {
     const [samlUrl, setSamlUrl] = useState(null);
 
     const getEidSamlUrl = async () => {
-        window.location.href = import.meta.env.VITE_BACKEND_BASE_URL + "/api/eid-saml/login";
+        window.location.href = import.meta.env.VITE_BACKEND_BASE_URL + "/api/eid-saml/initiateSaml/registration";
     }
 
     useEffect(() => {

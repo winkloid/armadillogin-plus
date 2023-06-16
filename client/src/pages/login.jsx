@@ -43,7 +43,10 @@ export default function Login() {
             optionsResponse = await axios({
                 method: 'post',
                 url: import.meta.env.VITE_BACKEND_BASE_URL + '/api/webauthn/authenticationOptions',
-                data: {"userName": userName}
+                data: {
+                    "userName": userName,
+                    "type": ((state?.isShortcodeLogin) ? "shortcode" : "")
+                }
             }).then((response) => {
                 return response;
             });
