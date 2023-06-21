@@ -26,12 +26,17 @@ export default function Login() {
     const [completeAuthenticationSuccess, setCompleteAuthenticationSuccess] = useState(false);
     const [errorState, setErrorState] = useState(ErrorState.success);
     const [currentError, setCurrentError] = useState("");
+    const [timeStampStartWithUserName, setTimeStampStartWithUserName] = useState(null);
 
     useEffect(() => {
         if(state?.isShortcodeLogin) {
             setCurrentNavigationState(NavigationState.shortcodeAuthorization_shortcodeInput);
         } else {
             setCurrentNavigationState(NavigationState.login);
+        }
+        // measure authenticationStartTime with start of username input
+        if(!timeStampStartWithUserName) {
+            setTimeStampStartWithUserName(new Date().getTime());
         }
     }, []);
 
@@ -45,7 +50,6 @@ export default function Login() {
                 url: import.meta.env.VITE_BACKEND_BASE_URL + '/api/webauthn/authenticationOptions',
                 data: {
                     "userName": userName,
-                    "type": ((state?.isShortcodeLogin) ? "shortcode" : "")
                 }
             }).then((response) => {
                 return response;
@@ -126,7 +130,7 @@ export default function Login() {
             </div>
         )
     } else if(fetchingAuthenticationOptionsSuccess && !completeAuthenticationSuccess) {
-        return(<AuthenticationCompletion authenticationOptions = {authenticationOptions} setAuthenticationSuccess = {setCompleteAuthenticationSuccess}/>);
+        return(<AuthenticationCompletion authenticationOptions = {authenticationOptions} setAuthenticationSuccess = {setCompleteAuthenticationSuccess} authenticationState = {state} timeStampStartWithUserName={timeStampStartWithUserName}/>);
     } else {
         if(state) {
             if(state.isShortcodeLogin) {

@@ -62,7 +62,7 @@ export default function Private () {
             setIsGlobalLoading(true);
             let userTimeStampResponse = await axios({
                 method: "put",
-                url: import.meta.env.VITE_BACKEND_BASE_URL + "/api/account/userTimeStamps"
+                url: import.meta.env.VITE_BACKEND_BASE_URL + "/api/timeStamps/updateAll"
             }).then((response) => {
                 return response;
             });

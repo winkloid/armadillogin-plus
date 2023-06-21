@@ -7,7 +7,7 @@ import ErrorComponent from "./ErrorComponent.jsx";
 import {useOutletContext} from "react-router-dom";
 import {NavigationState} from "../types/navigationState.js";
 
-export default function RegistrationCompletion({registrationOptions, setRegistrationSuccess}) {
+export default function RegistrationCompletion({registrationOptions, setRegistrationSuccess, timeStampStartWithUserName}) {
     const [currentNavigationState, setCurrentNavigationState] = useOutletContext();
 
     const [errorState, setErrorState] = useState(ErrorState.success);
@@ -15,8 +15,47 @@ export default function RegistrationCompletion({registrationOptions, setRegistra
     const [isLoading, setIsLoading] = useState(false);
     const [customAuthenticatorName, setCustomAuthenticatorName] = useState("");
 
+    const setFido2TimeStamp = async (timeStampStart, timeStampEnd) => {
+        try {
+            let setTimeStampResponse = await axios({
+                method: 'put',
+                url: import.meta.env.VITE_BACKEND_BASE_URL + '/api/timeStamps/setFido2TimeStamps',
+                data: {
+                    timeStampType: "registration",
+                    timeStampStartWithUserName: timeStampStartWithUserName,
+                    timeStampStart: timeStampStart,
+                    timeStampEnd: timeStampEnd
+                }
+            }).then((response) => {
+                return response;
+            });
+
+            if(setTimeStampResponse.status === 201) {
+                setErrorState(ErrorState.success);
+                return true;
+            } else {
+                setCurrentError("Server meldet: " + setTimeStampResponse.data);
+                if (setTimeStampResponse.status === 400) {
+                    setErrorState(ErrorState.badRequestError);
+                } else if (setTimeStampResponse.status === 500) {
+                    setErrorState(ErrorState.serverError);
+                } else {
+                    setErrorState(ErrorState.connectionError);
+                }
+                return false;
+            }
+        } catch(error) {
+            setCurrentError("Verbindungsproblem beim Senden der Zeitmessungsergebnisse an den Server.");
+            setErrorState(ErrorState.connectionError);
+            return false;
+        }
+    }
+
     const completeRegistration = async () => {
         setIsLoading(true);
+        //measure the current time to retrieve start time of Fido2 registration
+        const registrationStartTimeMS = new Date().getTime();
+
         // request response from the WebAuthn authenticator for registration
         // the Authenticator will now create a key pair consisting of public and private key
         // the Authenticator's response will include the public key of this key pair and a signature of the challenge that was included in the registrationOptions-JSON
@@ -54,12 +93,17 @@ export default function RegistrationCompletion({registrationOptions, setRegistra
                 setCurrentError(completeRegistrationResponse.data);
                 setErrorState(ErrorState.completeRegistrationError);
             } else {
-                setRegistrationSuccess(true);
-                setErrorState(ErrorState.success);
+                const registrationEndTimeMS = new Date().getTime();
+                let isTimeStampSettingSuccessful = await setFido2TimeStamp(registrationStartTimeMS, registrationEndTimeMS);
+                if(isTimeStampSettingSuccessful) {
+                    setRegistrationSuccess(true);
+                    setErrorState(ErrorState.success);
+                }
             }
         } catch (error) {
             setCurrentError("Fehler bei der Verbindung mit dem Backend. Bitte prüfen Sie Ihre Internetverbindung.");
             setErrorState(ErrorState.connectionError);
+        } finally {
             setIsLoading(false);
         }
     }

@@ -26,8 +26,14 @@ export default function Registration() {
     const [currentError, setCurrentError] = useState("");
     const [registrationOptions, setRegistrationOptions] = useState({});
 
+    const [timeStampStartWithUserName, setTimeStampStartWithUserName] = useState(null);
+
     useEffect(() => {
         setCurrentNavigationState(NavigationState.registration);
+        // measure registrationStartTime with start of username input
+        if(!timeStampStartWithUserName) {
+            setTimeStampStartWithUserName(new Date().getTime());
+        }
     }, []);
 
     const getRegistrationOptions = async () => {
@@ -123,7 +129,7 @@ export default function Registration() {
         )
     } else if(fetchingRegistrationOptionsSuccess && !completeRegistrationSuccess) {
         return(
-            <RegistrationCompletion registrationOptions={registrationOptions} setRegistrationSuccess={setCompleteRegistrationSuccess} />
+            <RegistrationCompletion registrationOptions={registrationOptions} setRegistrationSuccess={setCompleteRegistrationSuccess} timeStampStartWithUserName={timeStampStartWithUserName}/>
         );
     } else {
         return(<RegistrationSuccessfulComponent />);
