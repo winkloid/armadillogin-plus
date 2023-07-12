@@ -8,7 +8,7 @@ const {
 const {isAuthenticatedMiddleware} = require("../middleware/isAuthenticatedMiddleware");
 
 router.get("/metadata", getMetadata);
-router.get("/login", samlLogin);
+router.get("/initiateSaml/:loginOrRegistration", samlLogin);
 router.post("/callback", samlCallback);
 router.post("/assert", assertSaml);
 router.put("/linkEIdToAccount", isAuthenticatedMiddleware, linkEIdToAccount);

@@ -9,6 +9,7 @@ const LoginSessionSchema = new Schema({
         userName: {type: String},
         userId: {type: String},
         currentChallenge: {type: String},
+        time_endShortcode: {type: Number}
     },
 });
 

@@ -34,6 +34,15 @@ const samlLogin = (req, res) => {
         if(err != null) {
             return res.status(500).send("Interner Server Fehler bei der Weiterleitung zum Ausweis-Login-Dienst");
         }
+        if(req.params.loginOrRegistration === "registration") {
+            if(!req.session.time_startEIdRegistration) {
+                req.session.time_startEIdRegistration = new Date().getTime();
+            }
+        } else {
+            if(!req.session.time_startEIdAuthentication) {
+                req.session.time_startEIdAuthentication = new Date().getTime();
+            }
+        }
         res.redirect(login_url);
     })
 }
@@ -66,9 +75,15 @@ const assertSaml = (req, res) => {
                 req.session.eIdentifier = saml_response.user.name_id;
                 req.session.eIdentifierIssuer = saml_response.user.attributes["http://www.skidentity.de/att/IDIssuer"];
                 if(req.session?.isAuthenticated && req.session?.userId && req.session?.userName) {
-                    return res.status(200).redirect(process.env.FRONTEND_BASE_URL + "/eId/registration");
+                    if(!req.session.time_endEIdRegistration) {
+                        req.session.time_endEIdRegistration = new Date().getTime();
+                    }
+                    return res.redirect(process.env.FRONTEND_BASE_URL + "/eId/registration");
                 } else {
-                    return res.status(200).redirect(process.env.FRONTEND_BASE_URL + "/eId/login/completion");
+                    if(!req.session.time_endEIdAuthentication) {
+                        req.session.time_endEIdAuthentication = new Date().getTime();
+                    }
+                    return res.redirect(process.env.FRONTEND_BASE_URL + "/eId/login/completion");
                 }
             }
         }

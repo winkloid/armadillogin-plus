@@ -37,7 +37,7 @@ export default function EIdLogin_userNameInput() {
             if(userNameToSessionResponse.status === 201) {
                 setCurrentError("");
                 setErrorState(ErrorState.success);
-                window.location.href = import.meta.env.VITE_BACKEND_BASE_URL + "/api/eid-saml/login";
+                window.location.href = import.meta.env.VITE_BACKEND_BASE_URL + "/api/eid-saml/initiateSaml/login";
             } else {
                 setCurrentError("Server meldet: " + userNameToSessionResponse.data);
                 if (userNameToSessionResponse.status === 400) {

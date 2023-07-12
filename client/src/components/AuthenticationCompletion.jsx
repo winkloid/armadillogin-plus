@@ -4,13 +4,50 @@ import {useState} from "react";
 import {startAuthentication} from "@simplewebauthn/browser";
 import axios from "axios";
 
-export default function AuthenticationCompletion ( {authenticationOptions, setAuthenticationSuccess}) {
+export default function AuthenticationCompletion ( {authenticationOptions, setAuthenticationSuccess, authenticationState, timeStampStartWithUserName}) {
     const [errorState, setErrorState] = useState(ErrorState.success);
     const [currentError, setCurrentError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
+    const setFido2TimeStamp = async (timeStampStart, timeStampEnd) => {
+        try {
+            let setTimeStampResponse = await axios({
+                method: 'put',
+                url: import.meta.env.VITE_BACKEND_BASE_URL + '/api/timeStamps/setFido2TimeStamps',
+                data: {
+                    timeStampType: (authenticationState?.isShortcodeLogin ? "shortcodeAuthentication" : "authentication"),
+                    timeStampStartWithUserName: timeStampStartWithUserName,
+                    timeStampStart: timeStampStart,
+                    timeStampEnd: timeStampEnd
+                }
+            }).then((response) => {
+                return response;
+            });
+
+            if(setTimeStampResponse.status === 201) {
+                setErrorState(ErrorState.success);
+                return true;
+            } else {
+                setCurrentError("Server meldet: " + setTimeStampResponse.data);
+                if (setTimeStampResponse.status === 400) {
+                    setErrorState(ErrorState.badRequestError);
+                } else if (setTimeStampResponse.status === 500) {
+                    setErrorState(ErrorState.serverError);
+                } else {
+                    setErrorState(ErrorState.connectionError);
+                }
+                return false;
+            }
+        } catch(error) {
+            setCurrentError("Verbindungsproblem beim Senden der Zeitmessungsergebnisse an den Server. " + error);
+            setErrorState(ErrorState.connectionError);
+            return false;
+        }
+    }
+
     const completeAuthentication = async () => {
         setIsLoading(true);
+        const authenticationStartTimeMS = new Date().getTime();
         let authenticationResponse;
         try {
             // Pass the options to the authenticator and wait for a response
@@ -39,8 +76,12 @@ export default function AuthenticationCompletion ( {authenticationOptions, setAu
                 setCurrentError(completeAuthenticationResponse.data);
                 setErrorState(ErrorState.completeAuthenticationError);
             } else {
-                setAuthenticationSuccess(true);
-                setErrorState(ErrorState.success);
+                const authenticationEndTimeMS = new Date().getTime();
+                let isTimeStampSettingSuccessful = await setFido2TimeStamp(authenticationStartTimeMS, authenticationEndTimeMS);
+                if(isTimeStampSettingSuccessful) {
+                    setAuthenticationSuccess(true);
+                    setErrorState(ErrorState.success);
+                }
             }
         } catch (error) {
             setCurrentError("Fehler bei der Verbindung mit dem Backend. Bitte prüfen Sie Ihre Internetverbindung.");

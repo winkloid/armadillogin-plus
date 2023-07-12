@@ -15,9 +15,9 @@ const numberOfVerifyingChallenges = 4;
 // @access  Public
  */
 const setShortcode = async (req, res) => {
-    req.session.regenerate(async function (sessionRegenerationError) {
+     return req.session.regenerate(async function (sessionRegenerationError) {
         if(sessionRegenerationError) {
-            return res.status(500).send("Fewhler beim Erstellen einer neuen Sitzung.");
+            return res.status(500).send("Fehler beim Erstellen einer neuen Sitzung.");
         }
 
         const userAgentInfo = parser(req.headers["user-agent"]);
@@ -35,11 +35,14 @@ const setShortcode = async (req, res) => {
             return res.status(500).send("Aktuell sind keine temporären Sitzungen mehr frei. Bitte probieren Sie es später erneut.");
         }
 
+        // measure time on start of the shortcode authorization process
+        req.session.time_startShortcode = new Date().getTime();
+
         return res.status(201).send({
             shortcode: newlyCreatedShortcodeSession.content._id,
             verifyingString: newlyCreatedShortcodeSession.content.verifyingString,
         });
-    });
+     });
 }
 
 /*
@@ -179,7 +182,8 @@ const setShortcodeSessionAuthorized = async (req, res) => {
             $set: {
                 "session.isAuthenticated": true,
                 "session.userName": req.session.userName,
-                "session.userId": req.session.userId
+                "session.userId": req.session.userId,
+                "session.time_endShortcode": new Date().getTime()
             }
         }).session(mongooseSession);
 

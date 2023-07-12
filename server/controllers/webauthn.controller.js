@@ -14,6 +14,7 @@ const {
 } = require("@simplewebauthn/server");
 const base64url = require("base64url");
 const {data} = require("express-session/session/cookie");
+const {mongo} = require("mongoose");
 
 const maxRetriesOnError = 10;
 
@@ -78,10 +79,11 @@ const registrationOptions = async (req, res) => {
                 rpID: rpId,
                 userID: newlyCreatedUser.content._id,
                 userName: req.body.userName,
+                supportedAlgorithmIDs: [-7, -257],
                 attestationType: "none",
                 excludeCredentials: [],
                 authenticatorSelection: {
-                    userVerification: "discouraged"
+                    userVerification: "discouraged",
                 }
             });
             req.session.currentChallenge = options.challenge;
@@ -99,6 +101,7 @@ const completeRegistration =  async (req, res) => {
     }
     const currentChallenge = req.session.currentChallenge;
 
+    console.log(req.body);
     let registrationVerification;
     try {
         registrationVerification = await verifyRegistrationResponse({
@@ -121,39 +124,42 @@ const completeRegistration =  async (req, res) => {
         const credentialId = registrationInformation.credentialID;
         const counter = registrationInformation.counter;
 
-        // set corresponding user as registered
-        const setUserRegistered = await UserModel.updateOne({
-            _id: req.session.userId,
-            isRegistered: false
-        }, {$set: {
-            isRegistered: true
-        }}).exec().then((databaseResponse) => {
-            return {success: 1, content: databaseResponse};
-        }).catch((error) => {
-            return {success: 0, content: error};
-        });
+        const mongooseSession = await mongoose.startSession();
+        mongooseSession.startTransaction();
+        try {
+            // set corresponding user as registered
+            const setUserRegistered = await UserModel.updateOne({
+                _id: req.session.userId,
+                isRegistered: false
+            }, {$set: {
+                isRegistered: true
+            }}).session(mongooseSession).then(userRegistrationResponse => {
+                return userRegistrationResponse;
+            });
 
-        if(!setUserRegistered.success) {
-            return res.status(500).send("Fehler bei der Kommunikation mit der Datenbank beim Abschluss der Nutzerregistrierung.");
-        } else {
-            if(setUserRegistered.content.matchedCount === 0) {
+            if (setUserRegistered.matchedCount === 0) {
+                await mongooseSession.abortTransaction();
+                await mongooseSession.endSession();
                 return res.status(403).send("Ein Nutzer mit dem angegebenen Benutzernamen existiert entweder nicht oder hat die Registrierung bereits abgeschlossen. Wenn Sie Ihrem Konto einen weiteren Authenticator hinzufügen möchten, können Sie dies nach einem Login in Ihrem persönlichen Bereich tun.");
-            } else {
-                try {
-                    // Add authenticator to database if the specified user is not already registered
-                    const newWebAuthnAuthenticator = await WebAuthnAuthenticatorModel.create({
-                        userReference: req.session.userId,
-                        customCredentialName: req.body.authenticatorName,
-                        credentialId: Buffer.from(credentialId),
-                        credentialPublicKey: Buffer.from(credentialPublicKey),
-                        counter: counter,
-                        transports: req.body.registrationResponse.response.transports
-                    });
-                    return res.status(201).send("Der Benutzer" + req.session.userName + " wurde registriert. \n" + registrationVerified);
-                } catch(error) {
-                    return res.status(500).send("Interner Server Fehler beim Hinzufügen des Authenticators zur Datenbank." + error);
-                }
             }
+
+            // Add authenticator to database if the specified user is not already registered
+            await WebAuthnAuthenticatorModel.create([{
+                userReference: req.session.userId,
+                customCredentialName: req.body.authenticatorName,
+                credentialId: Buffer.from(credentialId),
+                credentialPublicKey: Buffer.from(credentialPublicKey),
+                counter: counter,
+                transports: req.body.registrationResponse.response.transports
+            }], {session: mongooseSession});
+
+            await mongooseSession.commitTransaction();
+            await mongooseSession.endSession();
+            return res.status(201).send("Der Benutzer" + req.session.userName + " wurde registriert. \n" + registrationVerified);
+        } catch(transactionError) {
+            await mongooseSession.abortTransaction();
+            await mongooseSession.endSession();
+            return res.status(500).send("Interner Server Fehler beim Hinzufügen des Benutzers zur Benutzerdatenbank." + transactionError);
         }
     } else return res.status(400).send("Fehler beim Auslesen der Informationen aus der Registration-Response des Authenticators.");
 }
@@ -204,7 +210,6 @@ const authenticationOptions = async (req, res) => {
     req.session.userName = req.body.userName;
     req.session.userId = user._id;
     req.session.currentChallenge = authenticationOptions.challenge;
-
     return res.status(200).send(authenticationOptions);
 }
 
@@ -223,7 +228,7 @@ const completeAuthentication = async (req, res) => {
 
     console.log(req.body.rawId);
     // fetch authenticator information of the authenticators registered by the provided user
-    const fetchedAuthenticatorById = await fetchAuthenticatorById(user._id, req.body.rawId);
+    const fetchedAuthenticatorById = await fetchAuthenticatorById(user._id, req.body?.rawId);
 
     // handle errors in fetched authenticator information
     if(fetchedAuthenticatorById.success === 0) {

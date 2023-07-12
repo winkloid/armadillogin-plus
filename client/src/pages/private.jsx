@@ -46,11 +46,41 @@ export default function Private () {
                 } else if (userInformationResponse.status === 500) {
                     setErrorState(ErrorState.serverError);
                 } else {
-                    setErrorState(ErrorState.authenticationOptionsError);
+                    setErrorState(ErrorState.connectionError);
                 }
             }
         } catch(error) {
             setCurrentError("Verbindungsproblem beim Abruf der Benutzerinformationen vom Server.");
+            setErrorState(ErrorState.connectionError);
+        } finally {
+            setIsGlobalLoading(false);
+        }
+    }
+
+    const updateUserTimeStamps = async () => {
+        try {
+            setIsGlobalLoading(true);
+            let userTimeStampResponse = await axios({
+                method: "put",
+                url: import.meta.env.VITE_BACKEND_BASE_URL + "/api/timeStamps/updateAll"
+            }).then((response) => {
+                return response;
+            });
+
+            if(userTimeStampResponse.status === 200) {
+                setErrorState(ErrorState.success);
+            } else {
+                setCurrentError("Server meldet: " + userTimeStampResponse.data);
+                if (userTimeStampResponse.status === 401) {
+                    setErrorState(ErrorState.notAuthorizedError);
+                } else if (userTimeStampResponse.status === 500) {
+                    setErrorState(ErrorState.serverError);
+                } else {
+                    setErrorState(ErrorState.connectionError);
+                }
+            }
+        } catch(error) {
+            setCurrentError("Verbindungsproblem beim Setzen der Zeitstempel in der Datenbank für den aktuellen Benutzer.");
             setErrorState(ErrorState.connectionError);
         } finally {
             setIsGlobalLoading(false);
@@ -68,6 +98,7 @@ export default function Private () {
             setCurrentNavigationState(NavigationState.private_login_completed);
         }
         fetchUserInformation();
+        updateUserTimeStamps();
     }, []);
 
     if(isloggedIn && !accountDeletionTried && !accountDeletionSuccess) {
