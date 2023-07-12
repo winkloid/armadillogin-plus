@@ -64,8 +64,8 @@ app.use("/api/timeStamps", timeStamps);
 
 
 const sslCredentials = {
-    key: fs.readFileSync("./armadillogin.winkloid.de.key"),
-    cert: fs.readFileSync("./armadillogin.winkloid.de.crt")
+    key: fs.readFileSync(process.env.HTTPS_PRIVKEY_PATH),
+    cert: fs.readFileSync(process.env.HTTPS_CERT_PATH)
 }
 const httpServer = http.createServer(app);
 const httpsServer = https.createServer(sslCredentials, app);
