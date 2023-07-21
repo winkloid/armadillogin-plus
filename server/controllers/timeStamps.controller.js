@@ -6,6 +6,11 @@ const timeStampTypes = Object.freeze({
     shortcodeAuthentication: "shortcodeAuthentication"
 });
 
+/*
+ @desc Saves timestamps for different defined events in using the application. The timestamps are measured on client-side, e.g. when user initiates the FIDO2 registration dialogue. These timestamps are then saved into the user's session. This method gets called automatically when users access their private area. It reads out the time values from the user's session and writes them to the users collection of the database. This method only writes timestamps that are not null.
+ @route PUT /api/timeStamps/updateAll
+ @access Private
+ */
 const setUserTimeStamps = async (req, res) => {
     return UserModel.updateOne({
         _id: req.session.userId,
@@ -36,6 +41,11 @@ const setUserTimeStamps = async (req, res) => {
     })
 }
 
+/*
+ @desc Sets timestamps in the user's session. When a user gets logged in and enters their private area the {@link setUserTimeStamps} method can be called via the /api/timeStamps/updateAll endpoint to read out all the timestamps from the user session and store them inside the database.
+ @route PUT /api/timeStamps/setFido2TimeStamps
+ @access Private
+ */
 const setFido2TimeStamps = async (req, res) => {
     const timeStampType = req.body?.timeStampType;
     const timeStampStartWithUserName = req.body?.timeStampStartWithUserName;

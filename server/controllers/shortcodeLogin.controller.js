@@ -10,9 +10,9 @@ const maxTimeUntilTimeoutMS = 600000; // 10 minutes
 const numberOfVerifyingChallenges = 4;
 
 /*
-// @desc    generate shortcode. This shortcode can be used to login from another device. Also, this endpoints returns a verifying string and stores userAgent information to the database which can be helpful for users to verify whether they are actually authorizing the right device
-// @route   POST /api/shortcodeLogin/setShortcode
-// @access  Public
+@desc    generate shortcode. This shortcode can be used to login from another device. Also, this endpoints returns a verifying string and stores userAgent information to the database which can be helpful for users to verify whether they are actually authorizing the right device
+@route   GET /api/shortcodeLogin/setShortcode
+@access  Public
  */
 const setShortcode = async (req, res) => {
      return req.session.regenerate(async function (sessionRegenerationError) {
@@ -46,9 +46,9 @@ const setShortcode = async (req, res) => {
 }
 
 /*
-// @desc    An User client will be notified via this endpoint if their loginSession has been authorized via the shortcode generated before
-// @route   GET /api/shortcodeLogin/getShortcodeAuthorizationNotification
-// @access  Public
+@desc    An User client will be notified via this endpoint if their loginSession has been authorized via the shortcode generated before
+@route   GET /api/shortcodeLogin/getShortcodeAuthorizationNotification
+@access  Public
  */
 const getShortcodeAuthorizationNotification = async (req, res) => {
     if(!req.session.id) {
@@ -107,9 +107,9 @@ const getShortcodeAuthorizationNotification = async (req, res) => {
 }
 
 /*
-// @desc    Retrieve the details of a shortcode session, including information about the browser to be authorized, sessionId of the loginSession currently active via this browser and a challenge containing multiple emoji string where only one is the verifying string of the shortcode Session
-// @route   GET /api/shortcodeLogin/getShortcodeSessionInfo
-// @access  Public
+@desc    Retrieve the details of a shortcode session, including information about the browser to be authorized, sessionId of the loginSession currently active via this browser and a challenge containing multiple emoji string where only one is the verifying string of the shortcode Session
+@route   POST /api/shortcodeLogin/getShortcodeSessionInfo
+@access  Private
  */
 const getShortcodeSessionInfo = async (req, res) => {
     if(!req.body.shortcode) {
@@ -150,9 +150,9 @@ const getShortcodeSessionInfo = async (req, res) => {
 }
 
 /*
-// @desc    Send the verifying string challenge response back to this endpoint; this endpoint checks whether the response actually equals the verifying string set before and if so, copies the session information of the authenticated loginSession to the loginSession of the browser that needs to be authorized and notifies this browser by setting the isAuthorized value inside the corresponding shortcodeSession document to true
-// @route   POST /api/shortcodeLogin/setShortcodeSessionAuthorized
-// @access  Public
+@desc    Send the verifying string challenge response back to this endpoint; this endpoint checks whether the response actually equals the verifying string set before and if so, copies the session information of the authenticated loginSession to the loginSession of the browser that needs to be authorized and notifies this browser by setting the isAuthorized value inside the corresponding shortcodeSession document to true
+@route   POST /api/shortcodeLogin/setShortcodeSessionAuthorized
+@access  Public
  */
 const setShortcodeSessionAuthorized = async (req, res) => {
     if(!req.body.verifyingChallengeResponse || !req.body.shortcode) {

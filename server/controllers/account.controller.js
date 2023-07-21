@@ -3,6 +3,11 @@ const LoginSessionModel = require("../models/loginSession.model");
 const WebAuthnAuthenticatorModel = require("../models/webauthn_authenticator.model")
 const mongoose= require("mongoose");
 
+/*
+@desc Returns personal user information. Since the personal information requested by ArmadilLogin-PLUS by now is an username, only the username of the currently logged in user is returned.
+@route GET /api/account/currentUserInformation
+@access Private
+ */
 const getCurrentUserInformation = async (req, res) => {
     if(req.session?.userId && req.session?.userName) {
         return res.status(200).send({
@@ -13,7 +18,13 @@ const getCurrentUserInformation = async (req, res) => {
     }
 }
 
+/*
+@desc Deletes all user Sessions, authenticators connected to the currently logged-in user account and all other information linked to the user account.
+@route DELETE /api/account/deleteUser
+@access Private
+ */
 const deleteUser = async (req, res) => {
+    // use a transaction to delete all user information because this operation shall not affect any user data if any of the deletion operations do not succeed
     const mongooseSession = await mongoose.startSession();
     mongooseSession.startTransaction();
     try {
@@ -37,6 +48,11 @@ const deleteUser = async (req, res) => {
     }
 }
 
+/*
+@desc Deletes the current user session without affecting any other user information.
+@route POST /api/account/logOutUser
+@access Private
+ */
 const logOutUser = (req, res) => {
     req.session.destroy();
     return res.status(200).send("Benutzer wurde erfolgreich ausgeloggt.");
