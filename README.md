@@ -56,6 +56,7 @@
   
   # server and client config
   BACKEND_BASE_URL = "https://armadillogin.exampledomain.com:5001"
+  FRONTEND_BASE_URL = "https://armadillogin.exampledomain.com:5173"
   rpId = "armadillogin.exampledomain.com"
   clientPort = 5173
   HTTPS_PRIVKEY_PATH="./armadillogin.exampledomain.com.key"
