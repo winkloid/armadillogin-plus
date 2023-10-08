@@ -85,7 +85,8 @@ const registrationOptions = async (req, res) => {
                 attestationType: "none",
                 excludeCredentials: [],
                 authenticatorSelection: {
-                    userVerification: "discouraged",
+                    userVerification: "preferred",
+                    residentKey: "required"
                 }
             });
             req.session.currentChallenge = options.challenge;
@@ -115,7 +116,7 @@ const completeRegistration =  async (req, res) => {
             expectedChallenge: currentChallenge,
             expectedOrigin: origin,
             expectedRPID: rpId,
-            requireUserVerification: false
+            requireUserVerification: true
         });
     } catch (verificationError) {
         console.log(verificationError);
@@ -215,7 +216,7 @@ const authenticationOptions = async (req, res) => {
             type: "public-key",
             transports: userAuthenticator.transports,
         })),
-        userVerification: "discouraged",
+        userVerification: "preferred",
     });
 
     req.session.isAuthenticated = false;
@@ -265,7 +266,7 @@ const completeAuthentication = async (req, res) => {
             expectedOrigin: origin,
             expectedRPID: rpId,
             authenticator: userAuthenticator,
-            requireUserVerification: false,
+            requireUserVerification: true,
         });
     } catch (error) {
         console.log(error);
@@ -324,13 +325,15 @@ const addNewAuthenticatorOptions = async (req, res) => {
         rpID: rpId,
         userID: userId,
         userName: userName,
+        supportedAlgorithmIDs: [-7, -257],
         attestationType: "none",
         excludeCredentials: userAuthenticators.map((userAuthenticator) => ({
             id: Uint8Array.from(userAuthenticator.credentialId),
             type: 'public-key',
         })),
         authenticatorSelection: {
-            userVerification: "discouraged"
+            userVerification: "preferred",
+            residentKey: "required"
         }
     });
     req.session.currentChallenge = options.challenge;
@@ -354,7 +357,7 @@ const addNewAuthenticatorCompletion = async (req, res) => {
             expectedChallenge: req.session.currentChallenge,
             expectedOrigin: origin,
             expectedRPID: rpId,
-            requireUserVerification: false
+            requireUserVerification: true
         });
     } catch (verificationError) {
         console.log(verificationError);

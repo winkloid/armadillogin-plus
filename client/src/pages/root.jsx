@@ -23,7 +23,7 @@ export default function Root() {
                 </div>
                 */}
             </nav>
-            <div className={"container"} style={{paddingBottom: "70px"}}>
+            <div className={"container"} style={{paddingBottom: "140px"}}>
                 <Outlet context={[currentNavigationState, setCurrentNavigationState]}/>
             </div>
             <BottomNavBar currentNavigationState={currentNavigationState} setCurrentNavigationState={setCurrentNavigationState}/>

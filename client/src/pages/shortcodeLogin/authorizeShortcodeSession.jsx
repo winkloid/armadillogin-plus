@@ -204,7 +204,7 @@ export default function AuthorizeShortcodeSession() {
                             </div>
                             <div className={"card-footer"}>
                                 <div className={"row mx-1"}>
-                                    <Link className={"btn btn-primary col me-1"} to={"/private"} state={{navigationState: NavigationState.welcome_shortcode_completed}}>Navigiere in meinen Privatbereich</Link>
+                                    <Link className={"btn btn-primary col me-1"} to={"/private/welcome_shortcode_completed"}>Navigiere in meinen Privatbereich</Link>
                                     <Link className={"btn btn-secondary col ms-1"} to={"/"}>Kehre zur Startseite zurück</Link>
                                 </div>
                             </div>
