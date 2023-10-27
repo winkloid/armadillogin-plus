@@ -89,9 +89,7 @@ export default function Login() {
                 </div>
                 <div className={"card-body"}>
                     <p className={"mb-2"}>Bitte geben Sie im folgenden Texteingabefeld den Benutzernamen ein, mit dem Sie sich registriert
-                        haben. Verwenden Sie anschließend Ihren FIDO2-/WebAuthn-Authenticator, um Zugang zu Ihrem Konto zu
-                        erhalten. Durch die Daten, die auf Ihrem persönlichen Authenticator gespeichert sind, kann dieser
-                        Ihre Identität dem System gegenüber bestätigen.</p>
+                        haben.</p>
                     <div className={"input-group mb-3"}>
                         <span className={"input-group-text"} id={"userName-addon"}>@</span>
                         <input value={userName}

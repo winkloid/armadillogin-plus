@@ -113,9 +113,7 @@ export default function RegistrationCompletion({registrationOptions, setRegistra
                 <h1 className={"display-5"}>Registrierung Ihres FIDO2/WebAuthn-Authenticators</h1>
             </div>
             <div className={"card-body"}>
-                <p>Damit nur Sie sich in Ihren persönlichen Mitgliederbereich einloggen können, muss ArmadilLogin PLUS Ihre Identität nachvollziehen können. Bisher verwendet ein Großteil der heute verfügbaren Software dazu Passwörter. ArmadilLogin PLUS erlaubt es Ihnen, <strong>Ihre Identität passwortlos nachzuweisen</strong>. Hierzu ist ein sogenannter <strong>"Authenticator"</strong> erforderlich. Ein Authenticator kann entweder bereits in Ihrem Gerät verbaut sein und über biometrische Merkmale wie Fingerabdrücke, Iris-Scan, etc. entsperrt werden oder in Form eines Hardware-Sicherheitsschlüssels vorliegen. Er dient dazu, alle <strong>geheimen Informationen für den Login sicher für Sie aufzubewahren</strong>.</p>
-                <p>Um Ihr Konto bei ArmadilLogin PLUS mit einem Authenticator zu verknüpfen, betätigen Sie die Schaltfläche "Verknüpfe meinen Authenticator".</p>
-                <p>Optional können Sie hier auch einen Namen für den neu zu registrierenden Authenticator vergeben. Das kann später helfen, den Überblick über alle Ihrem Konto hinzugefügten Authenticators zu behalten.</p>
+                <p><strong>Optional</strong> können Sie hier einen Namen für den Authenticator vergeben, den Sie registrieren möchten. Das kann im Praxisfall helfen, den Überblick über alle Ihrem Konto hinzugefügten Authenticators zu behalten.</p>
                 <div className={"input-group"}>
                     <span className={"input-group-text"} id={"authenticatorName-addon"}>🔑</span>
                     <input value={customAuthenticatorName}

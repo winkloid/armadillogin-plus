@@ -35,10 +35,7 @@ export default function EIdMainPage() {
             </div>
             <div className={"card-body"}>
                 <img src={"/src/assets/logo_eID.svg"} className={"img-fluid rounded mx-auto d-block col-md-2 mb-3"} alt={"Logo des elektrischen Personalausweises bestehend aus einem grünen und einem blauen Halbkreis."}/>
-                <p>Wenn Sie Ihren FIDO2-Authenticator verlieren, kann dies zur Folge haben, dass Sie den Zugang zu Ihren Konten verlieren. Um das zu verhindern, könnten Sie für all Ihre Online-Konten mehrere Authenticators hinzufügen, allerdings kann dies mit hohen Kosten einhergehen.</p>
-                <p>Auch der Personalausweis, den ohnehin jede deutsche Bürgerin und jeder deutsche Bürger besitzt, kann zum Login in Online-Dienste eingebaut werden.
-                    Neben einer PIN müssen Sie sich auch hierbei keinerlei passwortbasierte Zugangsdaten merken. Stattdessen sind im Ausweis bereits alle kryptografischen Informationen hinterlegt, die der elektronische Ausweisdienst benötigt, um Benutzerinformationen abzurufen.
-                    Die Web-Anwendung erhält vom elektronischen Ausweisdienst anschließend nur ein Pseudonym, das für jede Person einzigartig ist und somit auch vonseiten des Online-Diensts verwendet werden kann, um Benutzer voneinander zu unterscheiden. </p>
+                <p>Damit Sie sich bei einem Verlust Ihres FIDO2-Authenticators weiter in Ihr Konto einloggen können, ist eine alternative Anmeldemethode nützlich. Das eID-Verfahren bietet für FIDO2 eine kostengünstige und </p>
                 {samlUrl && <p>samlUrl: {samlUrl}</p>}
             </div>
             <div className={"card-footer"}>

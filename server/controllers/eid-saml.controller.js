@@ -91,7 +91,7 @@ const assertSaml = (req, res) => {
     }
     armadilLoginSp.post_assert(eIdIdp, samlOptions, (err, saml_response) => {
             if (err != null) {
-                return res.status(500).send("Interner Server Fehler beim Überprüfen der Antwort desAusweis-Anmelde-Dienstes: " + err);
+                return res.status(500).send("Interner Server Fehler beim Überprüfen der Antwort desAusweis-Anmelde-Dienstes: " + err + "<br/>Erneute Registrierung:<a href='https://armadillogin.winkloid.de:5173/eId'>hier</a> <br/><br/>Erneuter Login: <a href='https://armadillogin.winkloid.de:5173/eId/login'>hier</a>");
             } else {
                 req.session.eIdentifier = saml_response.user.name_id;
                 req.session.eIdentifierIssuer = saml_response.user.attributes["http://www.skidentity.de/att/IDIssuer"];

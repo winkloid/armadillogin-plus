@@ -21,7 +21,7 @@ export default function AuthenticationSuccessfulComponent({privateState}) {
             </div>
             <div className={"card-body"}>
                 <p>Herzlichen Glückwunsch!</p>
-                <p className={"mb-0"}>Sie haben sich erfolgreich mittels FIDO2/WebAuthn in das Benutzerkonto eingeloggt, das Sie im Registrierungsvorgang erstellt haben. Betätigen Sie die Schaltfläche "Navigiere in meinen persönlichen Bereich", um sich in Ihrem persönlichen Bereich weitere Informationen zu Ihrem Benutzerkonto anzeigen zu lassen.</p>
+                <p className={"mb-0"}>Sie haben sich erfolgreich mittels FIDO2/WebAuthn in das Benutzerkonto eingeloggt, das Sie im Registrierungsvorgang erstellt haben. Nun können Sie Zugang zu Ihrem persönlichen Bereich erhalten.</p>
                 {privateState === NavigationState.welcome_shortcode_completed && <p>Sie können Ihr Benutzerkonto nun von diesem Gerät aus normal nutzen, ohne dass Sie sich direkt auf diesem Gerät eingeloggt haben. Das ist beispielsweise für Geräte sinnvoll, die FIDO2 nicht unterstützen oder keine geeigneten Anschlüsse für FIDO2-Authenticators besitzen.</p>}
             </div>
             <div className={"card-footer bg-success bg-opacity-25"}>

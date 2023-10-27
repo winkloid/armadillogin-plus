@@ -204,12 +204,7 @@ export default function AuthenticatorSettings({setIsLoggedIn, setErrorState, set
             </div>
             <div className={"card-footer"}>
                 <h5>Weiteren Authenticator hinzufügen</h5>
-                <p>Auch wenn Sie das Gerät, mit dem Sie sich normalerweise in Ihr Benutzerkonto einloggen
-                    verloren geht, sollten Sie den Zugang zu Ihrem Konto nicht verlieren. Daher ist es
-                    ratsam, mehrere Geräte mit Ihrem Benutzerkonto zu verknüpfen, um sich im Falle eines
-                    Geräteverlusts mit einem Alternativgerät anmelden zu können.</p>
-                <p>Sie können in diesem Abschnitt einen optionalen Namen für einen weiteren Authenticator
-                    vergeben und ihn mit Ihrem Konto verknüpfen. </p>
+                <p>Hier können Sie weitere Authenticators hinzufügen, um bei Authenticator-Verlust den Zugang zu Ihrem Konto nicht zu verlieren.</p>
                 <form>
                     <div className={"input-group mb-3"}>
                         <span className={"input-group-text"} id={"authenticatorName-addon"}>🔑</span>
