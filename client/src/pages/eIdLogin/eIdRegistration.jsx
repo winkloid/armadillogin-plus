@@ -119,7 +119,7 @@ export default function EIdRegistration() {
                         <h1 className={"display-5"}>Bestätigung der Verknüpfung Ihres Ausweises</h1>
                     </div>
                     <div className={"card-body"}>
-                        <p>Möchten Sie den Ausweis, mit dem Sie sich soeben gegenüber dem elektronischen Ausweisdienst identifiziert haben, wirklich als Login-Möglichkeit für Ihr Benuterkonto mit dem Benutzernamen <strong>{currentUserInformation?.userName}</strong> hinzufügen? Damit haben Sie in Zukunft die freie Wahl, ob Sie sich über einen Ihrer FIDO2-/WebAuthn-Authenticators oder über Ihren Ausweis in Ihr Benutzerkonto einloggen.</p>
+                        <p>Möchten Sie den Ausweis, mit dem Sie sich soeben gegenüber dem elektronischen Ausweisdienst identifiziert haben, wirklich als Login-Möglichkeit für Ihr Benuterkonto mit dem Benutzernamen <strong>{currentUserInformation?.userName}</strong> hinzufügen? <br/> Damit haben Sie in Zukunft die freie Wahl, ob Sie sich über Passkeys oder über Ihren Ausweis in Ihr Benutzerkonto einloggen.</p>
                     </div>
                     <div className={"card-footer"}>
                         <button className={"btn btn-primary m-2 ms-0"} onClick={linkEIdToAccount}>Bestätige die Verknüpfung des Ausweises mit meinem Konto</button>

@@ -103,7 +103,7 @@ export default function EIdLogin_completion() {
             </div>
             <div className={"card-body"}>
                 <p>Herzlichen Glückwunsch!</p>
-                <p className={"mb-0"}>Sie haben sich erfolgreich mittels Ausweis/eID in das Benutzerkonto eingeloggt, das Sie im Registrierungsvorgang erstellt haben. Betätigen Sie die Schaltfläche "Navigiere in meinen persönlichen Bereich", um sich in Ihrem persönlichen Bereich weitere Informationen zu Ihrem Benutzerkonto anzeigen zu lassen.</p>
+                <p className={"mb-0"}>Sie haben sich erfolgreich mithilfe Ihres Ausweises in Ihr Benutzerkonto eingeloggt.</p>
             </div>
             <div className={"card-footer bg-success bg-opacity-25"}>
                 <Link to={"/private/eid_login_completed"} className={"btn btn-primary"}>Navigiere in meinen persönlichen Bereich</Link>

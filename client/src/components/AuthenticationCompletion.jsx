@@ -97,8 +97,7 @@ export default function AuthenticationCompletion ( {authenticationOptions, setAu
                 <h1 className={"display-5 m-0"}>Login mit Ihrem FIDO2/WebAuthn-Authenticator</h1>
             </div>
             <div className={"card-body"}>
-                <p>Damit nur Sie sich in Ihren persönlichen Mitgliederbereich einloggen können, muss ArmadilLogin PLUS Ihre Identität nachvollziehen können. Bisher verwendet ein Großteil der heute verfügbaren Software dazu Passwörter. ArmadilLogin PLUS erlaubt es Ihnen, <strong>Ihre Identität passwortlos nachzuweisen</strong>. Hierzu ist ein sogenannter <strong>"Authenticator"</strong> erforderlich. Ein Authenticator kann entweder bereits in Ihrem Gerät verbaut sein und über biometrische Merkmale wie Fingerabdrücke, Iris-Scan, etc. entsperrt werden oder in Form eines Hardware-Sicherheitsschlüssels vorliegen. Er <strong>dient dazu, jegliche zum Login erforderliche Informationen sicher aufzubewahren</strong>.</p>
-                <p className={"mb-0"}>Um sich mithilfe des Authenticators anzumelden, den Sie zuvor in der Registrierung oder in Ihrem Mitgliederbereich mit Ihrem Konto verknüpft haben, betätigen Sie die Schaltfläche "Bestätige Login mittels Authenticator".</p>
+                <p>Über die untenstehende Schaltfläche können Sie nun den Dialog zum Login mithilfe Ihres registrierten Authenticators initiieren.</p>
             </div>
             <div className={"card-footer"}>
                 {!isLoading ? (

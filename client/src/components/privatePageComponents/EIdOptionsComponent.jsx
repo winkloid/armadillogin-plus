@@ -13,14 +13,6 @@ export default function EIdOptionsComponent({currentUserInformation}) {
                 <div className={"card-body " + ((currentNavigationState === NavigationState.private_shortcode_completed) ? "bg-primary bg-opacity-10" : "")}>
                     <img src={"/src/assets/logo_eID.svg"} className={"img-fluid rounded mx-auto d-block col-md-2 mb-3"}
                          alt={"Logo des elektrischen Personalausweises bestehend aus einem grünen und einem blauen Halbkreis."}/>
-                    <p>Neben der Verknüpfung mehrerer Authenticators gibt es auch die Option, durch die Verknüpfung des
-                        Ausweises mit Ihrem ArmadilLogin-PLUS-Konto zu verhindern, dass Sie nicht mehr auf Ihr
-                        Benutzerkonto zugreifen können, falls Sie Ihren Haupt-Authenticator verlieren. Wenn Sie diese
-                        Option aktivieren möchten, werden Sie zunächst zu einem elektronischen Ausweisdienst
-                        weitergeleitet, der die Authentifizierung mittels Ausweis übernimmt. ArmadilLogin PLUS erhält im
-                        Anschluss daran ein Pseudonym von diesem Ausweisdienst, das für jeden Benutzer eindeutig ist.
-                        Damit kann ArmadilLogin PLUS nicht auf persönliche Informationen zugreifen, unterschiedliche
-                        Ausweise aber anhand dieses eindeutigen Pseudonyms voneinander unterscheiden.</p>
                     <p>Zur Verwendung dieser Option muss auf Ihrem Gerät entweder die <a
                         href={"https://www.ausweisapp.bund.de/download"}>AusweisApp 2</a> oder die quelloffene und freie
                         Alternative <a href={"https://www.openecard.org/startseite/"}>Open eCard</a> installiert sein.
